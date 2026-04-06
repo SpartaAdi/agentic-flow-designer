@@ -1,0 +1,12 @@
+{
+  "name": "blueprint-e2e-tests",
+  "version": "1.0.0",
+  "description": "End-to-end quality tests for Blueprint — AI Workflow Designer",
+  "scripts": {
+    "test": "playwright test",
+    "test:report": "playwright show-report"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.43.0"
+  }
+}
