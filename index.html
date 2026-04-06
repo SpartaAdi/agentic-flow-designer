@@ -1,139 +1,184 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Agentic Flow Designer — Design your AI automation workflow in minutes. Built by Aditya." />
-  <title>Agentic Flow Designer</title>
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧭</text></svg>" />
+  <meta name="description" content="Blueprint — Design your AI automation workflow in minutes. Get a step-by-step blueprint with platform, LLM, and cost in ₹." />
+  <title>Blueprint — AI Workflow Designer</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%234285F4'/><rect x='6' y='10' width='20' height='3' rx='1.5' fill='white'/><rect x='6' y='16' width='14' height='3' rx='1.5' fill='white' opacity='.8'/><rect x='6' y='22' width='17' height='3' rx='1.5' fill='white' opacity='.65'/><circle cx='27' cy='11.5' r='2.2' fill='white'/><circle cx='21' cy='17.5' r='2.2' fill='white' opacity='.8'/><circle cx='24' cy='23.5' r='2.2' fill='white' opacity='.65'/></svg>" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <script defer src="/_vercel/insights/script.js"></script>
+  <script defer src="/_vercel/speed-insights/script.js"></script>
   <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Syne:wght@700;800&display=swap" rel="stylesheet" />
   <style>
+    :root {
+      --bg: #FFFFFF;
+      --bg2: #F8F9FA;
+      --bg3: #F1F3F4;
+      --surf: #FFFFFF;
+      --bdr: #DADCE0;
+      --bdr2: #BDC1C6;
+      --txt: #202124;
+      --txt2: #5F6368;
+      --txt3: #9AA0A6;
+      --pr: #4285F4;
+      --pr-dk: #1A73E8;
+      --pr-bg: #E8F0FE;
+      --pr-tx: #1A73E8;
+      --ok: #34A853;
+      --ok-bg: #E6F4EA;
+      --ok-tx: #137333;
+      --wn: #F9AB00;
+      --wn-bg: #FEF7E0;
+      --wn-tx: #B06000;
+      --er: #EA4335;
+      --er-bg: #FCE8E6;
+      --er-tx: #C5221F;
+      --sh: 0 1px 3px rgba(60,64,67,.12), 0 1px 2px rgba(60,64,67,.08);
+      --sh2: 0 2px 8px rgba(60,64,67,.14), 0 1px 3px rgba(60,64,67,.1);
+      --r: 8px;
+      --rl: 12px;
+    }
+    [data-theme="dark"] {
+      --bg: #202124;
+      --bg2: #292A2D;
+      --bg3: #3C4043;
+      --surf: #292A2D;
+      --bdr: #3C4043;
+      --bdr2: #5F6368;
+      --txt: #E8EAED;
+      --txt2: #9AA0A6;
+      --txt3: #5F6368;
+      --pr: #8AB4F8;
+      --pr-dk: #669DF6;
+      --pr-bg: #1a3461;
+      --pr-tx: #8AB4F8;
+      --ok: #81C995;
+      --ok-bg: #1a3a2a;
+      --ok-tx: #81C995;
+      --wn: #FDD663;
+      --wn-bg: #3d3100;
+      --wn-tx: #FDD663;
+      --er: #F28B82;
+      --er-bg: #3b1a18;
+      --er-tx: #F28B82;
+      --sh: 0 1px 3px rgba(0,0,0,.3);
+      --sh2: 0 2px 8px rgba(0,0,0,.35);
+    }
     *{box-sizing:border-box;margin:0;padding:0}
-    body{background:#09090f;color:#e2e8f0;font-family:'DM Sans',sans-serif;min-height:100vh}
-    ::placeholder{color:#475569}
-    ::-webkit-scrollbar{width:4px}
-    ::-webkit-scrollbar-track{background:#0f172a}
-    ::-webkit-scrollbar-thumb{background:#334155;border-radius:2px}
-    #root{min-height:100vh}
-    .card{background:#111827;border:1px solid #1e293b;border-radius:14px;padding:20px}
-    .btn-p{background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;border:none;padding:12px 26px;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;transition:all .2s;font-family:'DM Sans',sans-serif}
-    .btn-p:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(99,102,241,.4)}
-    .btn-p:disabled{opacity:.5;cursor:not-allowed;transform:none}
-    .btn-s{background:transparent;color:#94a3b8;border:1px solid #334155;padding:10px 20px;border-radius:9px;font-size:13px;cursor:pointer;transition:all .2s;font-family:'DM Sans',sans-serif}
-    .btn-s:hover{border-color:#6366f1;color:#a5b4fc}
-    .inp{background:#1e293b;border:1px solid #334155;color:#e2e8f0;padding:10px 14px;border-radius:9px;font-size:14px;width:100%;outline:none;transition:border-color .2s;font-family:'DM Sans',sans-serif}
-    .inp:focus{border-color:#6366f1}
-    select.inp{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'%3E%3Cpath fill='%2364748b' d='M5 7L0 2h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center}
-    .opt{background:#1e293b;border:1.5px solid #334155;border-radius:10px;padding:11px 14px;cursor:pointer;transition:all .18s;display:flex;align-items:center;gap:9px}
-    .opt:hover{border-color:#6366f1;background:rgba(99,102,241,.06)}
-    .opt.sel{border-color:#6366f1;background:rgba(99,102,241,.1)}
-    .tag{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:500}
-    .row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #1e293b;font-size:13px}
-    .step-card{background:#111827;border:1px solid #1e293b;border-left:3px solid #6366f1;border-radius:12px;padding:16px;margin-bottom:9px}
-    .gap-card{background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.2);border-radius:10px;padding:12px 14px;margin-bottom:8px}
-    .conflict-card{background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.2);border-radius:10px;padding:12px 14px;margin-bottom:8px}
-    @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
-    .fu{animation:fadeUp .3s ease forwards}
+    html,body{background:var(--bg);color:var(--txt);font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;font-size:15px;line-height:1.6;min-height:100vh}
+    ::placeholder{color:var(--txt3)}
+    ::-webkit-scrollbar{width:5px}
+    ::-webkit-scrollbar-track{background:var(--bg2)}
+    ::-webkit-scrollbar-thumb{background:var(--bdr2);border-radius:3px}
+    .card{background:var(--surf);border:1px solid var(--bdr);border-radius:var(--rl);padding:20px;box-shadow:var(--sh);margin-bottom:12px}
+    .btn-p{background:var(--pr);color:#fff;border:none;padding:12px 24px;border-radius:var(--r);font-size:14px;font-weight:500;cursor:pointer;width:100%;font-family:inherit;letter-spacing:.01em;transition:background .15s,box-shadow .15s}
+    .btn-p:hover{background:var(--pr-dk);box-shadow:var(--sh)}
+    .btn-p:disabled{opacity:.45;cursor:not-allowed}
+    .btn-s{background:transparent;color:var(--txt2);border:1px solid var(--bdr);padding:10px 18px;border-radius:var(--r);font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;transition:all .15s;white-space:nowrap}
+    .btn-s:hover{border-color:var(--pr);color:var(--pr);background:var(--pr-bg)}
+    .inp{background:var(--bg2);border:1px solid var(--bdr);color:var(--txt);padding:10px 14px;border-radius:var(--r);font-size:14px;width:100%;outline:none;font-family:inherit;transition:border-color .15s,box-shadow .15s}
+    .inp:focus{border-color:var(--pr);background:var(--surf);box-shadow:0 0 0 3px var(--pr-bg)}
+    select.inp{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%235F6368' d='M6 8L1 3h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center}
+    .opt{background:var(--surf);border:1px solid var(--bdr);border-radius:var(--r);padding:12px 14px;cursor:pointer;display:flex;align-items:center;gap:10px;font-size:14px;transition:all .15s;box-shadow:var(--sh)}
+    .opt:hover{border-color:var(--pr);box-shadow:var(--sh2)}
+    .opt.sel{border-color:var(--pr);background:var(--pr-bg);color:var(--pr-tx)}
+    .lbl{font-size:11px;font-weight:600;color:var(--txt3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;display:block}
+    .pill{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:500}
+    .row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--bdr);font-size:13px;gap:8px}
+    .row:last-child{border-bottom:none}
+    .step-card{background:var(--surf);border:1px solid var(--bdr);border-left:3px solid var(--pr);border-radius:0 var(--r) var(--r) 0;padding:16px;margin-bottom:10px;box-shadow:var(--sh)}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+    .fu{animation:fadeUp .25s ease forwards}
     @keyframes spin{to{transform:rotate(360deg)}}
-    .spin{width:26px;height:26px;border:2px solid #334155;border-top-color:#6366f1;border-radius:50%;animation:spin .8s linear infinite}
-    @keyframes saveFlash{0%,100%{opacity:0}20%,80%{opacity:1}}
-    .save-flash{animation:saveFlash 2s ease forwards}
-    @media(max-width:720px){.two-col{grid-template-columns:1fr!important}.three-col{grid-template-columns:1fr!important}}
-    @media print{.no-print{display:none!important}body{background:#fff!important;color:#000!important}.card{background:#fff!important;border:1px solid #ddd!important}}
+    .spin-el{width:28px;height:28px;border:2px solid var(--bdr);border-top-color:var(--pr);border-radius:50%;animation:spin .7s linear infinite}
+    @keyframes prog{from{width:3%}to{width:92%}}
+    .pbar{height:3px;background:var(--pr);border-radius:2px;animation:prog var(--dur,20s) ease forwards}
+    @media(max-width:720px){.two-col{grid-template-columns:1fr !important}.three-col{grid-template-columns:1fr !important}.hide-sm{display:none !important}}
+    @media print{.no-print{display:none !important}body{background:#fff;color:#000}.card{box-shadow:none;border:1px solid #ddd}}
   </style>
 </head>
 <body>
-<div id="root"></div>
-<script type="text/babel" data-presets="react">
+<div id="app"></div>
+<script type="text/babel">
 
-const USD_TO_INR = 84;
-const STORAGE_KEY = "afd_v5";
+const STORAGE_KEY = "blueprint_v1";
+const USD = 84;
 
-const PLATFORM_DATA = {
-  "Make.com": { free: "1,000 ops/mo · 2 scenarios", paid: "$9/mo (Core)", paidINR: "₹756/mo", verdict: "freemium" },
-  "Zapier": { free: "100 tasks/mo · unlimited Zaps", paid: "$19.99/mo (Starter)", paidINR: "₹1,679/mo", verdict: "limited" },
-  "n8n (self-hosted)": { free: "Unlimited (Community Edition)", paid: "Cloud from $24/mo", paidINR: "₹2,016/mo", verdict: "freemium" },
-  "Relevance AI": { free: "200 Actions/mo + $2 credits", paid: "$19/mo (Team)", paidINR: "₹1,596/mo", verdict: "freemium" },
-  "Voiceflow": { free: "2 agents · limited msgs", paid: "$50/mo (Pro)", paidINR: "₹4,200/mo", verdict: "freemium" },
-  "Langflow": { free: "Open source · self-hosted", paid: "Cloud varies", paidINR: "Varies", verdict: "freemium" },
-  "Vertex AI Agent Builder": { free: "GCP trial $300 credits", paid: "Pay-per-use GCP", paidINR: "Pay-per-use", verdict: "paid" },
-  "None (Direct LLM)": { free: "No platform needed", paid: "LLM API only", paidINR: "LLM only", verdict: "freemium" },
+const PLATDATA = {
+  "Make.com": { free:"1,000 ops/mo · 2 scenarios", paid:"$9/mo (Core)", paidINR:"₹756/mo", verdict:"freemium" },
+  "Zapier": { free:"100 tasks/mo · unlimited Zaps", paid:"$19.99/mo (Starter)", paidINR:"₹1,679/mo", verdict:"limited" },
+  "n8n (self-hosted)": { free:"Unlimited (Community Edition)", paid:"Cloud from $24/mo", paidINR:"₹2,016/mo", verdict:"freemium" },
+  "Relevance AI": { free:"200 Actions/mo + $2 credits", paid:"$19/mo (Team)", paidINR:"₹1,596/mo", verdict:"freemium" },
+  "Voiceflow": { free:"2 agents · limited msgs", paid:"$50/mo (Pro)", paidINR:"₹4,200/mo", verdict:"freemium" },
+  "Langflow": { free:"Open source · self-hosted", paid:"Cloud varies", paidINR:"Varies", verdict:"freemium" },
+  "Vertex AI Agent Builder": { free:"GCP trial $300 credits", paid:"Pay-per-use GCP", paidINR:"Pay-per-use", verdict:"paid" },
+  "None (Direct LLM)": { free:"No platform needed", paid:"LLM API only", paidINR:"LLM only", verdict:"freemium" },
 };
 
-const LLM_DATA = {
-  "Claude Opus 4.6": { in: 5.00, out: 25.00, cliff: null, note: "Flat — no long-context premium" },
-  "Claude Sonnet 4.6": { in: 3.00, out: 15.00, cliff: null, note: "Flat — no long-context premium" },
-  "GPT-5.4": { in: 2.50, out: 15.00, cliff: 272000, note: "2× above 272K tokens" },
-  "GPT-5.4 Mini": { in: 0.75, out: 4.50, cliff: null, note: "Budget mid-tier" },
-  "GPT-5.4 Nano": { in: 0.20, out: 1.25, cliff: null, note: "Ultra-budget" },
-  "Gemini 3.1 Pro": { in: 2.00, out: 12.00, cliff: 200000, note: "2× above 200K tokens" },
-  "Gemini 2.5 Flash": { in: 0.15, out: 0.60, cliff: null, note: "Fast and cheap" },
-  "Gemini 3.1 Flash-Lite": { in: 0.25, out: 1.50, cliff: null, note: "Ultra-budget 2026" },
+const LLMDATA = {
+  "Claude Opus 4.6": { in:5.00, out:25.00, cliff:null, note:"Flat pricing — no long-context premium" },
+  "Claude Sonnet 4.6": { in:3.00, out:15.00, cliff:null, note:"Flat pricing — no long-context premium" },
+  "GPT-5.4": { in:2.50, out:15.00, cliff:272000, note:"2× pricing above 272K tokens" },
+  "GPT-5.4 Mini": { in:0.75, out:4.50, cliff:null, note:"Budget mid-tier" },
+  "GPT-5.4 Nano": { in:0.20, out:1.25, cliff:null, note:"Ultra-budget" },
+  "Gemini 3.1 Pro": { in:2.00, out:12.00, cliff:200000, note:"2× pricing above 200K tokens" },
+  "Gemini 2.5 Flash": { in:0.15, out:0.60, cliff:null, note:"Fast and cost-effective" },
+  "Gemini 3.1 Flash-Lite": { in:0.25, out:1.50, cliff:null, note:"Ultra-budget 2026 model" },
 };
 
-const PAYLOAD_TOKENS = {
-  "Short (1 page / ~500 words)": { in: 500, out: 300 },
-  "Medium (5–20 pages)": { in: 8000, out: 1500 },
-  "Long (50–200 pages)": { in: 80000, out: 4000 },
-  "Very large (200+ pages / codebases)": { in: 400000, out: 7000 },
+const PAYLOAD = {
+  "Short (1 page / ~500 words)": { in:500, out:300 },
+  "Medium (5–20 pages)": { in:8000, out:1500 },
+  "Long (50–200 pages)": { in:80000, out:4000 },
+  "Very large (200+ pages / codebases)": { in:400000, out:7000 },
 };
 
-const TASK_COLORS = {
-  "Trigger": "#6366f1", "Data Fetch": "#0ea5e9", "Research": "#10b981",
-  "Analysis": "#8b5cf6", "Content Generation": "#f59e0b", "Decision": "#ec4899",
-  "Data Transform": "#14b8a6", "Output": "#64748b"
+const TCOL = {
+  "Trigger": "#4285F4",
+  "Data Fetch": "#1A73E8",
+  "Research": "#34A853",
+  "Analysis": "#9334E6",
+  "Content Generation": "#F9AB00",
+  "Decision": "#EA4335",
+  "Data Transform": "#00897B",
+  "Output": "#5F6368"
 };
 
-const APPROACH_ICONS = {
-  "Direct LLM Usage": "⚡", "LLM Skill / Prompt Template": "📝",
-  "Scheduled Automation": "🔄", "Full Autonomous Agent": "🤖"
+const VDICT = {
+  "Freemium sufficient": { color:"var(--ok)", bg:"var(--ok-bg)", label:"Free to start" },
+  "Freemium to start upgrade likely": { color:"var(--wn)", bg:"var(--wn-bg)", label:"Start free, upgrade later" },
+  "Paid required": { color:"var(--er)", bg:"var(--er-bg)", label:"Paid subscription needed" },
 };
 
-const VERDICTS = {
-  "Freemium sufficient": { color: "#22c55e", icon: "🟢" },
-  "Freemium to start upgrade likely": { color: "#f59e0b", icon: "🟡" },
-  "Paid required": { color: "#ef4444", icon: "🔴" }
+const AICONS = {
+  "Direct LLM Usage": "⚡",
+  "LLM Skill / Prompt Template": "📋",
+  "Scheduled Automation": "🔄",
+  "Full Autonomous Agent": "🤖"
 };
 
-const INR = (usd) => `₹${Math.round(usd * USD_TO_INR).toLocaleString("en-IN")}`;
+const inr = (usd) => "₹" + Math.round(usd * USD).toLocaleString("en-IN");
 
-const PROGRESS_STAGES = {
-  clarify: [
-    { label: "Reading your use case…", est: 3 },
-    { label: "Identifying requirements…", est: 4 },
-    { label: "Preparing questions…", est: 6 },
-  ],
-  generate: [
-    { label: "Analysing your answers…", est: 3 },
-    { label: "Decomposing use case into tasks…", est: 5 },
-    { label: "Matching tools and platforms…", est: 5 },
-    { label: "Checking tool gaps…", est: 4 },
-    { label: "Calculating cost in INR…", est: 3 },
-    { label: "Building your blueprint…", est: 8 },
-  ],
-};
+const CLARIFY = `You are an AI automation consultant. Generate 5–10 clarifying questions for this user's automation use case.
+RULES: 5–10 questions, plain English, no jargon. multiSelect:true for checkboxes (maxSelections:3). ALWAYS ask about payload/document size. ALWAYS ask which specific tools/software they use (8–12 relevant options as checkboxes). ALWAYS ask which tools they CANNOT connect to third-party AI (data privacy). Ask about: data sources, output destination, trigger type, frequency.
+User intake: INTAKE_DATA
+Return ONLY valid JSON: {"questions":[{"id":1,"question":"","options":[""],"multiSelect":false,"maxSelections":1,"allowOther":true,"required":true}]}`;
 
-const CLARIFY_PROMPT = `You are an AI automation consultant. Generate 5–10 clarifying questions for this user's automation use case.
-RULES: 5–10 questions, plain English, no jargon. Mark multiSelect:true if multiple options apply (maxSelections:3). ALWAYS ask about payload/document size. ALWAYS ask which tools they currently use (give 8–12 relevant options as checkboxes). ALWAYS ask about data privacy constraints (which tools they cannot connect to third-party AI). Also ask about: data sources, output destination, trigger type, frequency.
-User intake: INTAKE_PLACEHOLDER
-Return ONLY valid JSON: {"questions":[{"id":1,"question":"text","options":["opt1","opt2"],"multiSelect":false,"maxSelections":1,"allowOther":true,"required":true}]}`;
-
-const SYSTEM_PROMPT = `You are an expert, unbiased AI automation consultant. Use verified April 2026 intelligence.
+const SYSPROMPT = `You are an expert, unbiased AI automation consultant using verified April 2026 intelligence.
 
 THREE GOLDEN RULES:
-Rule 1: WRITING anything important → Claude Opus/Sonnet 4.6 (proposals, reports, emails, posts, legal, compliance, SOPs, JDs, content, board decks, cold outreach). Why: Industry leader writing (1633 GDPval Elo), lowest hallucination.
-Rule 2: REAL-TIME / CURRENT information → Gemini 3.1 Pro (competitor research, market signals, regulatory alerts, live pricing, news, salary benchmarks, travel planning). Why: Native Google Search grounding — structural advantage.
-Rule 3: DATA / IMAGES / SPEED → GPT-5.4 (Excel, financial models, campaign data, image generation, PowerPoint/Microsoft 365, rapid prototyping, browser automation). Why: Advanced Data Analysis (executes Python), native DALL-E, fastest TTFT 1-3s.
+1. WRITING anything important → Claude Opus/Sonnet 4.6 (proposals, reports, emails, posts, legal, compliance, SOPs, JDs, content, board decks, cold outreach). Industry leader: 1633 GDPval Elo, lowest hallucination.
+2. REAL-TIME / CURRENT information → Gemini 3.1 Pro (competitor research, market signals, regulatory alerts, live pricing, news, salary benchmarks, travel). Native Google Search grounding — structural advantage.
+3. DATA / IMAGES / SPEED → GPT-5.4 (Excel, financial models, campaign data, image generation, PowerPoint/MS365, rapid prototyping, browser automation). Advanced Data Analysis, DALL-E, fastest TTFT.
 
-PER-TASK LLM ASSIGNMENT (assign different LLMs per task — critical):
-Claude: writing proposals/RFPs, writing emails, long-form content, JDs, policies, legal briefs, investor memos, annual report reading, resume screening, complex coding, RAG/MCP agents, risk assessment, brand voice
-Gemini: real-time company research, competitor intel, regulatory alerts (RBI/SEBI), salary benchmarking, scientific literature, finding recent papers, video analysis (ONLY option for video), travel logistics, pricing intel
-GPT: Excel/spreadsheet analysis, financial modelling, campaign data analysis, image generation, PowerPoint (Microsoft 365), browser automation, CRM CSV analysis, rapid prototyping
-Combined flows: Gemini find → Claude write (research reports, regulatory compliance, medical literature)
+PER-TASK LLM (assign different LLMs per task — critical):
+Claude: writing proposals/emails/reports/JDs/policies/legal briefs/investor memos, reading annual reports/contracts/resumes, complex coding, RAG/MCP agents, risk assessment, brand voice
+Gemini: real-time company research, competitor intel, regulatory alerts, salary benchmarking, scientific literature, video analysis (ONLY option), travel logistics, pricing intel
+GPT: Excel/spreadsheet analysis, financial modelling, campaign data analysis, image generation, PowerPoint (MS365), browser automation, CRM CSV analysis, rapid prototyping
 
 USER-TYPE CONTEXT (from intake):
 Engineering Student → Claude (coding/docs), Gemini (research)
@@ -147,35 +192,21 @@ Finance → GPT (modelling), Claude (long docs)
 CEO/Founder → Claude (writing/automation), Gemini (market intel)
 CTO/CIO → Claude (architecture/MCP), GPT (computer use)
 CFO → Claude (compliance docs), GPT (financial modelling)
-IT Enterprise → Claude (RAG/codebase), Gemini (volume/cost)
 Startup → Claude (build/write), Gemini (research), GPT (models)
 Builder/Tinkerer → Claude (agents/coding), GPT (speed)
 
-EXECUTION:
-- One-time task → Direct LLM Usage
-- Repeatable + monthly → LLM Skill / Prompt Template
-- Repeatable + weekly/daily → Scheduled Automation
-- Autonomous agent OR tasks>5 multi-system → Full Autonomous Agent
-- Personal use → simpler/cheaper; Production → robust/reliable
+EXECUTION: One-time → Direct LLM Usage. Monthly repeatable → LLM Skill/Prompt Template. Weekly/daily → Scheduled Automation. Autonomous/5+tasks multi-system → Full Autonomous Agent. Personal → simpler/cheaper. Production → robust/reliable.
 
-PLATFORM (budget-first):
-- Non-technical + no budget → Make.com or Relevance AI (NOT n8n Cloud — no free cloud tier)
-- Technical → n8n self-hosted (free, unlimited)
-- AI agent focus → Relevance AI
-- Voice/chatbot → Voiceflow
-- LLM/RAG pipeline → Langflow
-- Enterprise GCP → Vertex AI
-- One-time → None (Direct LLM)
+PLATFORM (budget-first): Non-technical+no budget → Make.com or Relevance AI (NOT n8n Cloud). Technical → n8n self-hosted. AI agent → Relevance AI. Voice/chatbot → Voiceflow. LLM/RAG → Langflow. Enterprise GCP → Vertex AI. One-time → None.
 
-TOOL GAP: Extract tools user HAS and CANNOT connect. Cross-reference with tools required. Flag toolsGap (mandatory but missing) and toolsPrivacyConflict (has but blocked — suggest workaround).
+TOOL GAP: Extract tools user HAS and CANNOT connect. Cross-reference with tools required. Flag toolsGap (mandatory+missing) and toolsPrivacyConflict (has but blocked — suggest workaround).
 
-COST: Budget-first. INR. Platform + LLM API separate.
-CLIFF: Very large payload + GPT-5.4 (>272K) or Gemini 3.1 Pro (>200K) → flag. Claude = cliff-safe.
-BILLING: Two bills except Vertex AI (single GCP).
-ROI: Honest. Compare vs simpler alternatives (Claude Skills, Gemini Gems, Custom GPT, schedulers).
+COST: INR. Platform+LLM API separate. CLIFF: Very large payload+GPT-5.4(>272K) or Gemini 3.1 Pro(>200K) → flag, recommend Claude (cliff-safe). Two bills except Vertex AI (single GCP).
+
+ROI: Honest. Compare vs Claude Skills/Gemini Gems/Custom GPT/schedulers. Let user decide.
 
 Return ONLY valid JSON:
-{"title":"max 8 words","executionApproach":"Direct LLM Usage|LLM Skill / Prompt Template|Scheduled Automation|Full Autonomous Agent","executionRationale":"one sentence","tasks":[{"number":1,"name":"","type":"Trigger|Data Fetch|Research|Analysis|Content Generation|Decision|Data Transform|Output","llm":"model or None","llmReason":"one phrase why","platform":"","description":""}],"visualFlow":"[Task|LLM|Tool] → [Task|LLM|Tool]","llmDistribution":[{"llm":"Claude Sonnet 4.6","taskCount":2,"taskNames":["Write email"]}],"platformRecommendation":"platform name","platformRationale":"why (budget reasoning)","llmRationale":"overall LLM strategy","freemiumVerdict":"Freemium sufficient|Freemium to start upgrade likely|Paid required","primaryLLM":"model name","billingNote":"plain English","cliffWarning":null,"thinkingTokenNote":null,"toolAnalysis":{"toolsRequired":["tool1"],"toolsUserHas":["tool1"],"toolsBlocked":["tool2"],"toolsGap":[{"tool":"name","reason":"why mandatory","workaround":"alternative"}],"toolsPrivacyConflict":[{"tool":"name","issue":"cannot connect","workaround":"alternative"}]},"roiAssessment":{"worthIt":true,"summary":"2-3 sentences","alternatives":[{"name":"","description":"","cost":"","bestFor":""}]},"detailedSteps":[{"taskNumber":1,"taskName":"","description":"","platform":"","llm":"","promptTemplate":"","input":"","output":"","connection":"","setupTime":""}]}`;
+{"title":"max 8 words","executionApproach":"Direct LLM Usage|LLM Skill / Prompt Template|Scheduled Automation|Full Autonomous Agent","executionRationale":"one sentence","tasks":[{"number":1,"name":"","type":"Trigger|Data Fetch|Research|Analysis|Content Generation|Decision|Data Transform|Output","llm":"model or None","llmReason":"one phrase why","platform":"","description":""}],"visualFlow":"[Task|LLM|Tool]→[Task|LLM|Tool]","llmDistribution":[{"llm":"Claude Sonnet 4.6","taskCount":1,"taskNames":[""]}],"platformRecommendation":"platform name","platformRationale":"why (budget reasoning)","llmRationale":"overall LLM strategy","freemiumVerdict":"Freemium sufficient|Freemium to start upgrade likely|Paid required","primaryLLM":"model name","billingNote":"plain English","cliffWarning":null,"toolAnalysis":{"toolsRequired":[],"toolsUserHas":[],"toolsBlocked":[],"toolsGap":[{"tool":"","reason":"","workaround":""}],"toolsPrivacyConflict":[{"tool":"","issue":"","workaround":""}]},"roiAssessment":{"worthIt":true,"summary":"","alternatives":[{"name":"","description":"","cost":"","bestFor":""}]},"detailedSteps":[{"taskNumber":1,"taskName":"","description":"","platform":"","llm":"","promptTemplate":"","input":"","output":"","connection":"","setupTime":""}]}`;
 
 async function callAPI(system, user) {
   const r = await fetch("/api/generate", {
@@ -192,627 +223,610 @@ async function callAPI(system, user) {
 }
 
 function calcCost(result, answers, questions) {
-  const llm = LLM_DATA[result?.primaryLLM];
+  const llm = LLMDATA[result?.primaryLLM];
   if (!llm) return null;
-  const pq = questions.find(q => /long|page|size|document/i.test(q.question));
-  const payloadAns = pq ? (Array.isArray(answers[pq.id]) ? answers[pq.id][0] : answers[pq.id]) : null;
-  const payload = PAYLOAD_TOKENS[payloadAns] || PAYLOAD_TOKENS["Medium (5–20 pages)"];
+  const pq = questions.find(q => /page|size|document|long/i.test(q.question));
+  const pAns = pq ? (Array.isArray(answers[pq.id]) ? answers[pq.id][0] : answers[pq.id]) : null;
+  const payload = PAYLOAD[pAns] || PAYLOAD["Medium (5–20 pages)"];
   const runs = result.executionApproach === "Direct LLM Usage" ? 1 : result.executionApproach === "Full Autonomous Agent" ? 300 : 100;
   const buf = result.thinkingTokenNote && !result.primaryLLM?.includes("Claude") ? 1.4 : 1.0;
   const usd = ((payload.in / 1e6) * llm.in + (payload.out / 1e6) * llm.out) * runs * buf;
-  return { usd, inr: usd * USD_TO_INR, runs, buf };
+  return { usd, inr: usd * USD, runs, buf };
 }
 
 function saveState(s) { try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...s, savedAt: Date.now() })); } catch {} }
 function loadState() { try { return JSON.parse(localStorage.getItem(STORAGE_KEY)); } catch { return null; } }
 function clearState() { try { localStorage.removeItem(STORAGE_KEY); } catch {} }
 
-function ProgressBar({ stage }) {
-  const [step, setStep] = React.useState(0);
-  const [elapsed, setElapsed] = React.useState(0);
-  const startRef = React.useRef(Date.now());
-  const steps = PROGRESS_STAGES[stage] || PROGRESS_STAGES.generate;
-  const totalEst = steps.reduce((a, s) => a + s.est, 0);
-
-  React.useEffect(() => {
-    startRef.current = Date.now();
-    setStep(0); setElapsed(0);
-    const ticker = setInterval(() => setElapsed(Date.now() - startRef.current), 200);
-    const timers = [];
-    let acc = 0;
-    steps.forEach((s, i) => {
-      if (i === 0) return;
-      acc += steps[i - 1].est * 1000;
-      timers.push(setTimeout(() => setStep(i), acc));
-    });
-    return () => { clearInterval(ticker); timers.forEach(clearTimeout); };
-  }, [stage]);
-
-  const pct = Math.min(93, (elapsed / (totalEst * 1000)) * 100);
-  const remaining = Math.max(1, Math.ceil(totalEst - elapsed / 1000));
-
-  return (
-    <div style={{ padding: "60px 20px", maxWidth: 480, margin: "0 auto", textAlign: "center" }}>
-      <div style={{ width: 52, height: 52, borderRadius: "50%", background: "rgba(99,102,241,.15)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, margin: "0 auto 24px" }}>
-        {stage === "clarify" ? "🔍" : "⚙️"}
-      </div>
-      <p style={{ fontSize: 15, fontWeight: 500, color: "#e2e8f0", margin: "0 0 4px" }}>{steps[step]?.label}</p>
-      <p style={{ fontSize: 12, color: "#64748b", margin: "0 0 20px" }}>~{remaining}s remaining · Step {step + 1} of {steps.length}</p>
-      <div style={{ width: "100%", height: 6, background: "#1e293b", borderRadius: 3, overflow: "hidden", marginBottom: 14 }}>
-        <div style={{ height: "100%", background: "linear-gradient(90deg,#6366f1,#a78bfa)", width: `${pct}%`, transition: "width 0.8s ease", borderRadius: 3 }} />
-      </div>
-      <div style={{ display: "flex", justifyContent: "center", gap: 8 }}>
-        {steps.map((_, i) => (
-          <div key={i} style={{ width: 7, height: 7, borderRadius: "50%", background: i <= step ? "#6366f1" : "#334155", transition: "background .3s" }} />
-        ))}
-      </div>
-    </div>
-  );
+function toggleTheme() {
+  const h = document.documentElement;
+  h.setAttribute("data-theme", h.getAttribute("data-theme") === "dark" ? "light" : "dark");
+  render();
 }
 
-function App() {
-  const [screen, setScreen] = React.useState("intake");
-  const [intake, setIntake] = React.useState({ userType: "", field: "", orgType: "", dept: "", company: "", role: "", useCase: "", usageIntent: "", execPref: "" });
-  const [questions, setQuestions] = React.useState([]);
-  const [answers, setAnswers] = React.useState({});
-  const [result, setResult] = React.useState(null);
-  const [showDetails, setShowDetails] = React.useState(false);
-  const [loadStage, setLoadStage] = React.useState(null);
-  const [error, setError] = React.useState("");
-  const [savedSession, setSavedSession] = React.useState(null);
-  const [refinement, setRefinement] = React.useState("");
-  const [saveFlash, setSaveFlash] = React.useState(false);
+let state = {
+  screen: "intake",
+  intake: { userType:"", field:"", orgType:"", dept:"", company:"", role:"", useCase:"", usageIntent:"", execPref:"" },
+  questions: [],
+  answers: {},
+  result: null,
+  showDetails: false,
+  loadStage: null,
+  error: "",
+  refinement: "",
+  saveFlash: false,
+};
 
-  React.useEffect(() => { const s = loadState(); if (s?.result) setSavedSession(s); }, []);
-  React.useEffect(() => { if (result || screen !== "intake") saveState({ screen, intake, questions, answers, result, showDetails }); }, [screen, result, showDetails]);
-
-  const ui = (k, v) => setIntake(p => ({ ...p, [k]: v }));
-
-  function toggleAns(qId, opt, isMulti, max = 3) {
-    setAnswers(prev => {
-      if (!isMulti) return { ...prev, [qId]: opt };
-      const cur = Array.isArray(prev[qId]) ? prev[qId] : [];
-      if (cur.includes(opt)) return { ...prev, [qId]: cur.filter(o => o !== opt) };
-      if (cur.length >= max) return prev;
-      return { ...prev, [qId]: [...cur, opt] };
-    });
-  }
-
-  function isSel(qId, opt, isMulti) {
-    return isMulti ? (Array.isArray(answers[qId]) && answers[qId].includes(opt)) : answers[qId] === opt;
-  }
-
-  function resumeSession() {
-    const s = savedSession;
-    setIntake(s.intake || {}); setQuestions(s.questions || []);
-    setAnswers(s.answers || {}); setResult(s.result || null);
-    setShowDetails(s.showDetails || false); setScreen(s.screen || "intake");
-    setSavedSession(null);
-  }
-
-  function startFresh() {
-    clearState(); setSavedSession(null);
-    setIntake({ userType: "", field: "", orgType: "", dept: "", company: "", role: "", useCase: "", usageIntent: "", execPref: "" });
-    setQuestions([]); setAnswers({}); setResult(null); setShowDetails(false);
-    setRefinement(""); setScreen("intake"); setError("");
-  }
-
-  function manualSave() {
-    saveState({ screen, intake, questions, answers, result, showDetails });
-    setSaveFlash(true);
-    setTimeout(() => setSaveFlash(false), 2000);
-  }
-
-  async function handleIntakeSubmit() {
-    if (!intake.userType || !intake.useCase.trim() || !intake.usageIntent || !intake.execPref) {
-      setError("Please complete all required fields."); return;
-    }
-    setError(""); setLoadStage("clarify");
-    try {
-      const prompt = CLARIFY_PROMPT.replace("INTAKE_PLACEHOLDER", JSON.stringify(intake));
-      const data = await callAPI("Return only valid JSON. No markdown.", prompt);
-      const qs = data.questions || [];
-      setQuestions(qs);
-      const init = {};
-      qs.forEach(q => { init[q.id] = q.multiSelect ? [] : ""; });
-      setAnswers(init);
-      setScreen("questions");
-    } catch (e) { setError("Something went wrong: " + e.message); }
-    setLoadStage(null);
-  }
-
-  async function handleGenerate(isRefinement = false) {
-    setError(""); setLoadStage("generate");
-    try {
-      const fmtAnswers = {};
-      Object.entries(answers).forEach(([k, v]) => { fmtAnswers[k] = Array.isArray(v) ? v.join(", ") : v; });
-      const payload = { intake, clarifyingAnswers: fmtAnswers, questions };
-      if (isRefinement && refinement.trim()) payload.refinementNote = refinement;
-      if (isRefinement && result) payload.previousAnalysis = { title: result.title };
-      const data = await callAPI(SYSTEM_PROMPT, JSON.stringify(payload));
-      setResult(data); setScreen("result"); setRefinement("");
-    } catch (e) { setError("Something went wrong: " + e.message); }
-    setLoadStage(null);
-  }
-
-  const cost = result ? calcCost(result, answers, questions) : null;
-  const platInfo = result ? (PLATFORM_DATA[result.platformRecommendation] || PLATFORM_DATA["None (Direct LLM)"]) : null;
-  const vInfo = result ? (VERDICTS[result.freemiumVerdict] || VERDICTS["Freemium to start upgrade likely"]) : null;
-
-  return (
-    <div style={{ minHeight: "100vh", background: "#09090f" }}>
-      {/* Header */}
-      <div style={{ borderBottom: "1px solid #1e293b", padding: "13px 24px", display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, background: "rgba(9,9,15,.96)", backdropFilter: "blur(8px)", zIndex: 100 }} className="no-print">
-        <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
-          <div style={{ width: 28, height: 28, background: "linear-gradient(135deg,#6366f1,#8b5cf6)", borderRadius: 7, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14 }}>🧭</div>
-          <span style={{ fontFamily: "'Syne',sans-serif", fontSize: 15, fontWeight: 800, letterSpacing: "-.02em" }}>Agentic Flow Designer</span>
-        </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          {result && (
-            <div style={{ position: "relative" }}>
-              <button className="btn-s" style={{ fontSize: 11, padding: "7px 12px" }} onClick={manualSave}>💾 Save</button>
-              {saveFlash && <span className="save-flash" style={{ position: "absolute", top: -22, left: "50%", transform: "translateX(-50%)", fontSize: 10, color: "#22c55e", whiteSpace: "nowrap" }}>Saved!</span>}
-            </div>
-          )}
-          <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
-            {["intake", "questions", "result"].map((s, i, arr) => (
-              <React.Fragment key={s}>
-                <div style={{ width: 7, height: 7, borderRadius: "50%", background: screen === s ? "#6366f1" : i < arr.indexOf(screen) ? "#22c55e" : "#334155", transition: "all .3s" }} />
-                {i < arr.length - 1 && <div style={{ width: 24, height: 1.5, background: i < arr.indexOf(screen) ? "#22c55e" : "#334155" }} />}
-              </React.Fragment>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Resume Banner */}
-      {savedSession && !loadStage && screen === "intake" && (
-        <div style={{ background: "rgba(99,102,241,.1)", borderBottom: "1px solid rgba(99,102,241,.2)", padding: "11px 24px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 10 }} className="no-print">
-          <span style={{ fontSize: 13, color: "#a5b4fc" }}>💾 Saved session from {new Date(savedSession.savedAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}</span>
-          <div style={{ display: "flex", gap: 8 }}>
-            <button className="btn-p" style={{ padding: "7px 14px", fontSize: 12 }} onClick={resumeSession}>Resume →</button>
-            <button className="btn-s" style={{ padding: "7px 12px", fontSize: 12 }} onClick={() => setSavedSession(null)}>Dismiss</button>
-          </div>
-        </div>
-      )}
-
-      <div style={{ maxWidth: result && screen === "result" ? 980 : 660, margin: "0 auto", padding: "28px 20px" }}>
-
-        {loadStage && <ProgressBar stage={loadStage} />}
-
-        {/* ── SCREEN 1: Intake ── */}
-        {!loadStage && screen === "intake" && (
-          <div className="fu">
-            <div style={{ marginBottom: 26 }}>
-              <h1 style={{ fontFamily: "'Syne',sans-serif", fontSize: 28, fontWeight: 800, margin: "0 0 8px", lineHeight: 1.15 }}>Design Your <span style={{ background: "linear-gradient(90deg,#6366f1,#a78bfa)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>AI Workflow</span></h1>
-              <p style={{ color: "#64748b", fontSize: 14 }}>Describe your use case. Get a step-by-step agentic blueprint with cost in ₹.</p>
-            </div>
-
-            {error && <div style={{ background: "rgba(239,68,68,.08)", border: "1px solid rgba(239,68,68,.25)", borderRadius: 9, padding: "9px 13px", marginBottom: 16, color: "#fca5a5", fontSize: 13 }}>{error}</div>}
-
-            <div style={{ marginBottom: 20 }}>
-              <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: "#64748b", marginBottom: 9, textTransform: "uppercase", letterSpacing: ".08em" }}>1. Who are you? *</label>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 7 }} className="two-col">
-                {[["🎓","Student"],["💼","Working Professional"],["👔","CXO / Founder"],["🔧","Builder / Tinkerer"],["🙋","Other"]].map(([ic,lb]) => (
-                  <div key={lb} className={`opt ${intake.userType===lb?"sel":""}`} onClick={() => ui("userType",lb)}>
-                    <span style={{ fontSize: 16 }}>{ic}</span><span style={{ fontSize: 13, fontWeight: 500 }}>{lb}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {intake.userType === "Student" && (
-              <div style={{ marginBottom: 18 }}>
-                <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: "#64748b", marginBottom: 8, textTransform: "uppercase", letterSpacing: ".08em" }}>Field of Study *</label>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 7 }}>
-                  {["Arts & Humanities","Engineering & CS","Science & Research","Commerce & Business"].map(f => (
-                    <div key={f} className={`opt ${intake.field===f?"sel":""}`} onClick={() => ui("field",f)}><span style={{ fontSize: 12, fontWeight: 500 }}>{f}</span></div>
-                  ))}
-                </div>
-              </div>
-            )}
-            {intake.userType === "Working Professional" && (
-              <div style={{ marginBottom: 18, display: "grid", gap: 9 }}>
-                <div>
-                  <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: "#64748b", marginBottom: 7, textTransform: "uppercase", letterSpacing: ".08em" }}>Organisation Size *</label>
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 7 }}>
-                    {["Startup (< 200)","Mid-size (200–1000)","Enterprise (1000+)"].map(o => (
-                      <div key={o} className={`opt ${intake.orgType===o?"sel":""}`} onClick={() => ui("orgType",o)} style={{ justifyContent: "center" }}>
-                        <span style={{ fontSize: 11, fontWeight: 500, textAlign: "center" }}>{o}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                <select className="inp" value={intake.dept} onChange={e => ui("dept",e.target.value)}>
-                  <option value="">Department *</option>
-                  {["Operations","Marketing","Sales","HR","Product","Finance","Technology / IT","Other"].map(d => <option key={d}>{d}</option>)}
-                </select>
-                <input className="inp" placeholder="Company name (optional)" value={intake.company} onChange={e => ui("company",e.target.value)} />
-              </div>
-            )}
-            {intake.userType === "CXO / Founder" && (
-              <div style={{ marginBottom: 18, display: "grid", gap: 9 }}>
-                <select className="inp" value={intake.role} onChange={e => ui("role",e.target.value)}>
-                  <option value="">Your role *</option>
-                  {["CEO / Founder / MD","CTO / CIO","CMO / VP Marketing","CFO / VP Finance","COO / VP Operations","Other C-Suite"].map(r => <option key={r}>{r}</option>)}
-                </select>
-                <select className="inp" value={intake.dept} onChange={e => ui("dept",e.target.value)}>
-                  <option value="">Use case function *</option>
-                  {["Operations","Marketing","Sales","HR","Product","Finance","Technology","Other"].map(d => <option key={d}>{d}</option>)}
-                </select>
-                <input className="inp" placeholder="Company name (optional)" value={intake.company} onChange={e => ui("company",e.target.value)} />
-              </div>
-            )}
-
-            <div style={{ marginBottom: 18 }}>
-              <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: "#64748b", marginBottom: 8, textTransform: "uppercase", letterSpacing: ".08em" }}>2. Your use case *</label>
-              <textarea className="inp" rows={4} placeholder="e.g. I want to automatically research companies before sales calls, pull their latest news, and send myself a briefing 30 minutes before each meeting." value={intake.useCase} onChange={e => ui("useCase",e.target.value)} style={{ resize: "vertical" }} />
-              <p style={{ fontSize: 11, color: "#475569", marginTop: 4 }}>2–3 sentences for the best recommendation</p>
-            </div>
-
-            <div style={{ marginBottom: 18 }}>
-              <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: "#64748b", marginBottom: 8, textTransform: "uppercase", letterSpacing: ".08em" }}>3. Usage intent *</label>
-              <div style={{ display: "flex", gap: 7 }}>
-                {[["🧪","Personal / Learning"],["🏭","Production Use"]].map(([ic,lb]) => (
-                  <div key={lb} className={`opt ${intake.usageIntent===lb?"sel":""}`} onClick={() => ui("usageIntent",lb)} style={{ flex: 1 }}>
-                    <span style={{ fontSize: 16 }}>{ic}</span><span style={{ fontSize: 13, fontWeight: 500 }}>{lb}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div style={{ marginBottom: 26 }}>
-              <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: "#64748b", marginBottom: 8, textTransform: "uppercase", letterSpacing: ".08em" }}>4. What kind of solution? *</label>
-              <div style={{ display: "grid", gap: 7 }}>
-                {[["⚡","One-time task","I need this done once"],["🔄","Repeatable workflow","Runs on a schedule or trigger"],["🤖","Autonomous agent","AI handles end-to-end without me"]].map(([ic,lb,desc]) => (
-                  <div key={lb} className={`opt ${intake.execPref===lb?"sel":""}`} onClick={() => ui("execPref",lb)} style={{ flexDirection: "column", alignItems: "flex-start", gap: 2 }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}><span style={{ fontSize: 16 }}>{ic}</span><span style={{ fontSize: 13, fontWeight: 600 }}>{lb}</span></div>
-                    <span style={{ fontSize: 11, color: "#64748b", paddingLeft: 24 }}>{desc}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <button className="btn-p" onClick={handleIntakeSubmit} style={{ width: "100%", padding: "14px" }}>Analyse My Use Case →</button>
-          </div>
-        )}
-
-        {/* ── SCREEN 2: Questions ── */}
-        {!loadStage && screen === "questions" && (
-          <div className="fu">
-            <div style={{ marginBottom: 22 }}>
-              <div style={{ display: "flex", gap: 8, marginBottom: 9, flexWrap: "wrap" }}>
-                <div className="tag" style={{ background: "rgba(99,102,241,.15)", color: "#a5b4fc" }}>{questions.length} questions · one round</div>
-                <div className="tag" style={{ background: "rgba(34,197,94,.1)", color: "#4ade80" }}>Checkboxes: pick up to 3</div>
-              </div>
-              <h2 style={{ fontFamily: "'Syne',sans-serif", fontSize: 21, fontWeight: 700, margin: "0 0 5px" }}>A few more details</h2>
-              <p style={{ color: "#64748b", fontSize: 13 }}>Including tools you use and data privacy constraints — ensures a realistic blueprint.</p>
-            </div>
-
-            {error && <div style={{ background: "rgba(239,68,68,.08)", border: "1px solid rgba(239,68,68,.25)", borderRadius: 9, padding: "9px 13px", marginBottom: 14, color: "#fca5a5", fontSize: 13 }}>{error}</div>}
-
-            {questions.map((q, qi) => {
-              const isMulti = q.multiSelect === true;
-              const maxSel = q.maxSelections || (isMulti ? 3 : 1);
-              const curArr = isMulti ? (Array.isArray(answers[q.id]) ? answers[q.id] : []) : [];
-              return (
-                <div key={q.id} className="card" style={{ marginBottom: 12 }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 9 }}>
-                    <span style={{ fontSize: 10, color: "#6366f1", fontWeight: 700, background: "rgba(99,102,241,.15)", padding: "2px 8px", borderRadius: 20 }}>Q{qi+1}/{questions.length}</span>
-                    {isMulti && <span className="tag" style={{ background: "rgba(99,102,241,.1)", color: "#a5b4fc" }}>Select up to {maxSel}</span>}
-                  </div>
-                  <p style={{ fontSize: 14, fontWeight: 500, margin: "0 0 11px", lineHeight: 1.45 }}>{q.question}</p>
-                  <div style={{ display: "grid", gap: 6 }}>
-                    {q.options.map(opt => {
-                      const sel = isSel(q.id, opt, isMulti);
-                      const disabled = isMulti && curArr.length >= maxSel && !sel;
-                      return (
-                        <div key={opt} className={`opt ${sel?"sel":""}`} onClick={() => !disabled && toggleAns(q.id, opt, isMulti, maxSel)} style={{ opacity: disabled ? 0.4 : 1, cursor: disabled ? "not-allowed" : "pointer" }}>
-                          <div style={{ width: 15, height: 15, borderRadius: isMulti ? 3 : "50%", border: `2px solid ${sel?"#6366f1":"#475569"}`, background: sel ? "#6366f1" : "transparent", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                            {sel && <span style={{ fontSize: 9, color: "#fff", fontWeight: 700 }}>✓</span>}
-                          </div>
-                          <span style={{ fontSize: 13 }}>{opt}</span>
-                        </div>
-                      );
-                    })}
-                    {q.allowOther && !isMulti && (
-                      <input className="inp" style={{ marginTop: 3 }} placeholder="Other — describe briefly…" value={answers[q.id]?.startsWith?.("Other:") ? answers[q.id].slice(7) : ""} onChange={e => setAnswers(p => ({ ...p, [q.id]: e.target.value ? `Other: ${e.target.value}` : "" }))} />
-                    )}
-                  </div>
-                  {isMulti && curArr.length > 0 && (
-                    <p style={{ marginTop: 7, fontSize: 11, color: "#6366f1" }}>Selected: {curArr.join(" · ")}</p>
-                  )}
-                </div>
-              );
-            })}
-
-            <div style={{ display: "flex", gap: 8, marginTop: 18 }}>
-              <button className="btn-s" onClick={() => setScreen("intake")}>← Back</button>
-              <button className="btn-p" onClick={() => handleGenerate(false)} style={{ flex: 1 }}>Generate My Blueprint →</button>
-            </div>
-          </div>
-        )}
-
-        {/* ── SCREEN 3: Result ── */}
-        {!loadStage && screen === "result" && result && (
-          <div className="fu">
-            <div style={{ marginBottom: 22, display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 14, flexWrap: "wrap" }}>
-              <div style={{ flex: 1 }}>
-                <div style={{ display: "flex", gap: 8, marginBottom: 7, alignItems: "center", flexWrap: "wrap" }}>
-                  <span style={{ fontSize: 19 }}>{APPROACH_ICONS[result.executionApproach] || "⚙️"}</span>
-                  <div className="tag" style={{ background: "rgba(99,102,241,.15)", color: "#a5b4fc" }}>{result.executionApproach}</div>
-                </div>
-                <h2 style={{ fontFamily: "'Syne',sans-serif", fontSize: 23, fontWeight: 800, margin: "0 0 5px", lineHeight: 1.2 }}>{result.title}</h2>
-                <p style={{ color: "#64748b", fontSize: 13, lineHeight: 1.45 }}>{result.executionRationale}</p>
-              </div>
-              <button className="btn-s no-print" style={{ fontSize: 11, padding: "8px 13px", flexShrink: 0 }} onClick={() => window.print()}>🖨️ Print / Save PDF</button>
-            </div>
-
-            {result.cliffWarning && (
-              <div style={{ background: "rgba(239,68,68,.07)", border: "1px solid rgba(239,68,68,.2)", borderRadius: 11, padding: "12px 15px", marginBottom: 14, display: "flex", gap: 9 }}>
-                <span style={{ fontSize: 16, flexShrink: 0 }}>⚠️</span>
-                <div><p style={{ margin: "0 0 2px", fontSize: 13, color: "#fca5a5", fontWeight: 500 }}>Long-Context Pricing Alert</p><p style={{ margin: 0, fontSize: 12, color: "#94a3b8", lineHeight: 1.45 }}>{result.cliffWarning}</p></div>
-              </div>
-            )}
-
-            {/* Visual Flow */}
-            <div className="card" style={{ marginBottom: 12 }}>
-              <p style={{ fontSize: 10, color: "#64748b", textTransform: "uppercase", letterSpacing: ".08em", margin: "0 0 11px", fontWeight: 600 }}>Agentic Flow</p>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: 7, alignItems: "center" }}>
-                {result.tasks?.map((task, i) => (
-                  <React.Fragment key={i}>
-                    <div style={{ background: "#1e293b", border: "1px solid #334155", borderRadius: 9, padding: "8px 12px", textAlign: "center", minWidth: 95, flexShrink: 0 }}>
-                      <div style={{ width: 5, height: 5, borderRadius: "50%", background: TASK_COLORS[task.type] || "#6366f1", margin: "0 auto 5px" }} />
-                      <div style={{ fontSize: 10, fontWeight: 600, color: "#e2e8f0", marginBottom: 1 }}>{task.name}</div>
-                      {task.llm && task.llm !== "None" && <div style={{ fontSize: 9, color: "#6366f1", fontWeight: 500, marginBottom: 1 }}>{task.llm.split(" ").slice(0,2).join(" ")}</div>}
-                      <div style={{ fontSize: 9, color: "#64748b" }}>{task.platform}</div>
-                    </div>
-                    {i < result.tasks.length - 1 && <div style={{ color: "#6366f1", fontSize: 14, flexShrink: 0 }}>→</div>}
-                  </React.Fragment>
-                ))}
-              </div>
-              {result.llmDistribution?.length > 0 && (
-                <div style={{ marginTop: 11, paddingTop: 10, borderTop: "1px solid #1e293b", display: "flex", flexWrap: "wrap", gap: 7, alignItems: "center" }}>
-                  <span style={{ fontSize: 10, color: "#475569", fontWeight: 600 }}>LLMs in this flow:</span>
-                  {result.llmDistribution.map((d, i) => {
-                    const clr = d.llm?.includes("Claude") ? "#10b981" : d.llm?.includes("Gemini") ? "#f59e0b" : d.llm?.includes("GPT") ? "#6366f1" : "#64748b";
-                    return <div key={i} className="tag" style={{ background: `${clr}15`, color: clr, border: `1px solid ${clr}30` }}>{d.llm} · {d.taskCount} task{d.taskCount > 1 ? "s" : ""}</div>;
-                  })}
-                </div>
-              )}
-            </div>
-
-            {/* 3-col grid */}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, marginBottom: 12 }} className="three-col">
-              <div className="card">
-                <p style={{ fontSize: 10, color: "#64748b", textTransform: "uppercase", letterSpacing: ".08em", margin: "0 0 9px", fontWeight: 600 }}>Platform</p>
-                <p style={{ fontSize: 14, fontWeight: 700, color: "#e2e8f0", margin: "0 0 4px" }}>{result.platformRecommendation}</p>
-                <p style={{ fontSize: 11, color: "#64748b", margin: "0 0 7px", lineHeight: 1.4 }}>{result.platformRationale}</p>
-                {vInfo && <div className="tag" style={{ background: `${vInfo.color}18`, color: vInfo.color, marginBottom: 8 }}>{vInfo.icon} {result.freemiumVerdict}</div>}
-                {platInfo && <div style={{ borderTop: "1px solid #1e293b", paddingTop: 8, marginTop: 4 }}>
-                  <p style={{ fontSize: 10, color: "#475569", margin: "0 0 2px" }}>Free: {platInfo.free}</p>
-                  <p style={{ fontSize: 10, color: "#f59e0b", margin: 0 }}>Paid: {platInfo.paid} / {platInfo.paidINR}</p>
-                </div>}
-              </div>
-
-              <div className="card">
-                <p style={{ fontSize: 10, color: "#64748b", textTransform: "uppercase", letterSpacing: ".08em", margin: "0 0 9px", fontWeight: 600 }}>Primary LLM</p>
-                <p style={{ fontSize: 14, fontWeight: 700, color: "#e2e8f0", margin: "0 0 4px" }}>{result.primaryLLM}</p>
-                <p style={{ fontSize: 11, color: "#64748b", margin: "0 0 7px", lineHeight: 1.4 }}>{result.llmRationale}</p>
-                {(() => { const l = LLM_DATA[result.primaryLLM]; return l ? (
-                  <div style={{ borderTop: "1px solid #1e293b", paddingTop: 8, marginTop: 4 }}>
-                    <p style={{ fontSize: 10, color: "#22c55e", margin: "0 0 2px" }}>In: ${l.in}/1M · {INR(l.in/1000)}/K</p>
-                    <p style={{ fontSize: 10, color: "#f59e0b", margin: "0 0 2px" }}>Out: ${l.out}/1M · {INR(l.out/1000)}/K</p>
-                    <p style={{ fontSize: 10, color: "#64748b", margin: 0 }}>{l.note}</p>
-                  </div>
-                ) : null; })()}
-              </div>
-
-              <div className="card">
-                <p style={{ fontSize: 10, color: "#64748b", textTransform: "uppercase", letterSpacing: ".08em", margin: "0 0 9px", fontWeight: 600 }}>Monthly Cost (INR)</p>
-                {cost ? (
-                  <>
-                    <div className="row"><span style={{ color: "#94a3b8" }}>Platform</span><span style={{ color: "#22c55e", fontWeight: 600 }}>{result.freemiumVerdict === "Freemium sufficient" ? "Free" : platInfo?.paidINR}</span></div>
-                    <div className="row"><span style={{ color: "#94a3b8" }}>LLM API (~{cost.runs} runs)</span><span style={{ fontWeight: 600 }}>₹{Math.round(cost.inr).toLocaleString("en-IN")}</span></div>
-                    {cost.buf > 1 && <div className="row"><span style={{ color: "#94a3b8", fontSize: 11 }}>Thinking buffer (40%)</span><span style={{ color: "#f59e0b", fontSize: 11 }}>incl.</span></div>}
-                    <div style={{ marginTop: 9, background: "#1e293b", borderRadius: 8, padding: "9px 11px", textAlign: "center" }}>
-                      <p style={{ margin: 0, fontSize: 10, color: "#64748b" }}>Total estimated</p>
-                      <p style={{ margin: "2px 0 0", fontSize: 20, fontWeight: 700 }}>₹{Math.round(cost.inr).toLocaleString("en-IN")}</p>
-                      <p style={{ margin: 0, fontSize: 10, color: "#475569" }}>≈ ${cost.usd.toFixed(2)}/mo</p>
-                    </div>
-                  </>
-                ) : <p style={{ fontSize: 12, color: "#64748b" }}>Varies by usage</p>}
-              </div>
-            </div>
-
-            {/* Billing note */}
-            <div style={{ background: "rgba(99,102,241,.06)", border: "1px solid rgba(99,102,241,.18)", borderRadius: 10, padding: "10px 14px", marginBottom: 12, display: "flex", gap: 8 }}>
-              <span style={{ fontSize: 14, flexShrink: 0 }}>💡</span>
-              <p style={{ margin: 0, fontSize: 12, color: "#94a3b8", lineHeight: 1.45 }}>{result.billingNote}</p>
-            </div>
-
-            {/* Task Breakdown */}
-            <div className="card" style={{ marginBottom: 12 }}>
-              <p style={{ fontSize: 10, color: "#64748b", textTransform: "uppercase", letterSpacing: ".08em", margin: "0 0 11px", fontWeight: 600 }}>Task Breakdown · {result.tasks?.length} steps</p>
-              {result.tasks?.map((task, i) => {
-                const llmClr = task.llm?.includes("Claude") ? "#10b981" : task.llm?.includes("Gemini") ? "#f59e0b" : task.llm?.includes("GPT") ? "#6366f1" : "#64748b";
-                return (
-                  <div key={i} style={{ display: "flex", gap: 11, padding: "9px 0", borderBottom: i < result.tasks.length - 1 ? "1px solid #1e293b" : "none" }}>
-                    <div style={{ width: 21, height: 21, borderRadius: 5, background: `${TASK_COLORS[task.type]||"#6366f1"}18`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontSize: 9, fontWeight: 700, color: TASK_COLORS[task.type]||"#6366f1" }}>{task.number}</div>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 3, flexWrap: "wrap" }}>
-                        <span style={{ fontSize: 13, fontWeight: 600, color: "#e2e8f0" }}>{task.name}</span>
-                        <span className="tag" style={{ background: `${TASK_COLORS[task.type]||"#6366f1"}14`, color: TASK_COLORS[task.type]||"#a5b4fc", fontSize: 9 }}>{task.type}</span>
-                      </div>
-                      <p style={{ margin: "0 0 5px", fontSize: 12, color: "#94a3b8", lineHeight: 1.4 }}>{task.description}</p>
-                      <div style={{ display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center" }}>
-                        {task.llm && task.llm !== "None" && (
-                          <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                            <span className="tag" style={{ background: `${llmClr}18`, color: llmClr, border: `1px solid ${llmClr}30`, fontSize: 10 }}>🤖 {task.llm}</span>
-                            {task.llmReason && <span style={{ fontSize: 10, color: "#475569", fontStyle: "italic" }}>{task.llmReason}</span>}
-                          </div>
-                        )}
-                        {task.platform && <span className="tag" style={{ background: "#1e293b", color: "#94a3b8", fontSize: 10 }}>🔧 {task.platform}</span>}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* Tool Analysis */}
-            {result.toolAnalysis && (
-              <div className="card" style={{ marginBottom: 12 }}>
-                <p style={{ fontSize: 10, color: "#64748b", textTransform: "uppercase", letterSpacing: ".08em", margin: "0 0 11px", fontWeight: 600 }}>Tool Analysis</p>
-                <div style={{ display: "flex", gap: 7, flexWrap: "wrap", marginBottom: 12 }}>
-                  {result.toolAnalysis.toolsRequired?.map(t => {
-                    const hasIt = result.toolAnalysis.toolsUserHas?.includes(t);
-                    const blocked = result.toolAnalysis.toolsBlocked?.includes(t);
-                    const missing = !hasIt && !blocked;
-                    const clr = missing ? "#fca5a5" : blocked ? "#fbbf24" : "#4ade80";
-                    const bg = missing ? "rgba(239,68,68,.1)" : blocked ? "rgba(245,158,11,.1)" : "rgba(34,197,94,.1)";
-                    const border = missing ? "rgba(239,68,68,.25)" : blocked ? "rgba(245,158,11,.25)" : "rgba(34,197,94,.25)";
-                    return <div key={t} className="tag" style={{ background: bg, color: clr, border: `1px solid ${border}` }}>{missing?"⚠️":blocked?"🔒":"✓"} {t}</div>;
-                  })}
-                </div>
-                {result.toolAnalysis.toolsGap?.length > 0 && (
-                  <div style={{ marginBottom: 10 }}>
-                    <p style={{ fontSize: 11, fontWeight: 600, color: "#ef4444", margin: "0 0 8px" }}>⚠️ Tools you need but don't currently have</p>
-                    {result.toolAnalysis.toolsGap.map((g, i) => (
-                      <div key={i} className="gap-card">
-                        <p style={{ margin: "0 0 3px", fontSize: 13, fontWeight: 600, color: "#fca5a5" }}>{g.tool}</p>
-                        <p style={{ margin: "0 0 4px", fontSize: 12, color: "#94a3b8" }}>{g.reason}</p>
-                        {g.workaround && <p style={{ margin: 0, fontSize: 11, color: "#64748b" }}>💡 Workaround: {g.workaround}</p>}
-                      </div>
-                    ))}
-                  </div>
-                )}
-                {result.toolAnalysis.toolsPrivacyConflict?.length > 0 && (
-                  <div>
-                    <p style={{ fontSize: 11, fontWeight: 600, color: "#f59e0b", margin: "0 0 8px" }}>🔒 Required tools restricted by your privacy policy</p>
-                    {result.toolAnalysis.toolsPrivacyConflict.map((c, i) => (
-                      <div key={i} className="conflict-card">
-                        <p style={{ margin: "0 0 3px", fontSize: 13, fontWeight: 600, color: "#fbbf24" }}>{c.tool}</p>
-                        <p style={{ margin: "0 0 4px", fontSize: 12, color: "#94a3b8" }}>{c.issue}</p>
-                        {c.workaround && <p style={{ margin: 0, fontSize: 11, color: "#64748b" }}>💡 Alternative: {c.workaround}</p>}
-                      </div>
-                    ))}
-                  </div>
-                )}
-                {!result.toolAnalysis.toolsGap?.length && !result.toolAnalysis.toolsPrivacyConflict?.length && (
-                  <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "9px 12px", background: "rgba(34,197,94,.07)", borderRadius: 8 }}>
-                    <span>✅</span><span style={{ fontSize: 13, color: "#4ade80" }}>You have all required tools. No gaps or privacy conflicts.</span>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* ROI */}
-            {result.roiAssessment && (
-              <div className="card" style={{ marginBottom: 12 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
-                  <span style={{ fontSize: 17 }}>{result.roiAssessment.worthIt ? "✅" : "🤔"}</span>
-                  <div>
-                    <p style={{ fontSize: 10, color: "#64748b", textTransform: "uppercase", letterSpacing: ".08em", margin: "0 0 1px", fontWeight: 600 }}>ROI Assessment</p>
-                    <p style={{ margin: 0, fontSize: 13, fontWeight: 500, color: result.roiAssessment.worthIt ? "#22c55e" : "#f59e0b" }}>{result.roiAssessment.worthIt ? "Worth the investment" : "Consider alternatives first"}</p>
-                  </div>
-                </div>
-                <p style={{ fontSize: 13, color: "#94a3b8", margin: "0 0 12px", lineHeight: 1.5 }}>{result.roiAssessment.summary}</p>
-                {result.roiAssessment.alternatives?.length > 0 && (
-                  <>
-                    <p style={{ fontSize: 10, color: "#64748b", margin: "0 0 9px", fontWeight: 600, textTransform: "uppercase", letterSpacing: ".06em" }}>Simpler alternatives — you decide</p>
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }} className="two-col">
-                      {result.roiAssessment.alternatives.map((alt, i) => (
-                        <div key={i} style={{ background: "#1e293b", borderRadius: 10, padding: "12px 14px", border: "1px solid #334155" }}>
-                          <p style={{ margin: "0 0 4px", fontSize: 13, fontWeight: 600, color: "#e2e8f0" }}>{alt.name}</p>
-                          <p style={{ margin: "0 0 6px", fontSize: 11, color: "#94a3b8", lineHeight: 1.4 }}>{alt.description}</p>
-                          <div style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>
-                            <span className="tag" style={{ background: "rgba(34,197,94,.1)", color: "#22c55e", fontSize: 10 }}>💰 {alt.cost}</span>
-                            <span className="tag" style={{ background: "#283548", color: "#94a3b8", fontSize: 10 }}>Best for: {alt.bestFor}</span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </>
-                )}
-              </div>
-            )}
-
-            {/* Disclaimer */}
-            <div style={{ background: "#111827", border: "1px solid #1e293b", borderRadius: 8, padding: "8px 12px", marginBottom: 18 }}>
-              <p style={{ margin: 0, fontSize: 10, color: "#475569", lineHeight: 1.5 }}>⚠️ Cost estimates are approximate. Platform pricing verified April 2026. USD/INR rate: ₹84. Verify before committing: n8n.io · make.com · zapier.com · relevanceai.com · anthropic.com · openai.com · ai.google.dev</p>
-            </div>
-
-            {/* Actions */}
-            <div style={{ marginBottom: 16 }} className="no-print">
-              <button className="btn-p" onClick={() => setShowDetails(!showDetails)} style={{ width: "100%" }}>
-                {showDetails ? "▲ Hide Detailed Build Steps" : "▼ Get Detailed Build Steps"}
-              </button>
-            </div>
-
-            {/* Detailed Steps */}
-            {showDetails && result.detailedSteps?.length > 0 && (
-              <div className="fu" style={{ marginBottom: 20 }}>
-                <h3 style={{ fontFamily: "'Syne',sans-serif", fontSize: 16, fontWeight: 700, margin: "0 0 4px" }}>Step-by-Step Build Guide</h3>
-                <p style={{ fontSize: 12, color: "#64748b", margin: "0 0 14px" }}>Written for beginners. No prior experience needed.</p>
-                {result.detailedSteps.map((step, i) => (
-                  <div key={i} className="step-card">
-                    <div style={{ display: "flex", alignItems: "center", gap: 9, marginBottom: 9 }}>
-                      <div style={{ width: 24, height: 24, borderRadius: 6, background: "rgba(99,102,241,.15)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 700, color: "#a5b4fc", flexShrink: 0 }}>S{step.taskNumber}</div>
-                      <div><p style={{ margin: 0, fontSize: 13, fontWeight: 600 }}>{step.taskName}</p><p style={{ margin: 0, fontSize: 10, color: "#64748b" }}>⏱ {step.setupTime}</p></div>
-                    </div>
-                    <p style={{ fontSize: 12, color: "#94a3b8", lineHeight: 1.5, margin: "0 0 9px" }}>{step.description}</p>
-                    {step.promptTemplate && (
-                      <div style={{ background: "#0f172a", borderRadius: 7, padding: "9px 12px", marginBottom: 9 }}>
-                        <p style={{ margin: "0 0 3px", fontSize: 9, color: "#475569", textTransform: "uppercase", letterSpacing: ".07em" }}>Prompt Template</p>
-                        <p style={{ margin: 0, fontSize: 11, color: "#93c5fd", fontFamily: "monospace", lineHeight: 1.5, whiteSpace: "pre-wrap" }}>{step.promptTemplate}</p>
-                      </div>
-                    )}
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 7, marginBottom: 6 }}>
-                      <div style={{ background: "#1e293b", borderRadius: 7, padding: "7px 9px" }}>
-                        <p style={{ margin: "0 0 2px", fontSize: 9, color: "#475569", textTransform: "uppercase" }}>Input</p>
-                        <p style={{ margin: 0, fontSize: 11, color: "#94a3b8" }}>{step.input}</p>
-                      </div>
-                      <div style={{ background: "#1e293b", borderRadius: 7, padding: "7px 9px" }}>
-                        <p style={{ margin: "0 0 2px", fontSize: 9, color: "#475569", textTransform: "uppercase" }}>Output</p>
-                        <p style={{ margin: 0, fontSize: 11, color: "#94a3b8" }}>{step.output}</p>
-                      </div>
-                    </div>
-                    <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-                      {step.platform && <span className="tag" style={{ background: "#1e293b", color: "#94a3b8", fontSize: 10 }}>🔧 {step.platform}</span>}
-                      {step.llm && step.llm !== "None" && <span className="tag" style={{ background: "#1e293b", color: "#94a3b8", fontSize: 10 }}>🤖 {step.llm}</span>}
-                    </div>
-                    {step.connection && <p style={{ margin: "7px 0 0", fontSize: 10, color: "#475569" }}>→ {step.connection}</p>}
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {/* Refinement */}
-            <div className="card no-print" style={{ marginBottom: 12, border: "1px solid #334155" }}>
-              <p style={{ fontSize: 11, fontWeight: 600, color: "#a5b4fc", margin: "0 0 4px", textTransform: "uppercase", letterSpacing: ".07em" }}>🔁 Refine Your Analysis</p>
-              <p style={{ fontSize: 12, color: "#64748b", margin: "0 0 11px", lineHeight: 1.4 }}>Add more context or correct something — the entire blueprint will be regenerated.</p>
-              <textarea className="inp" rows={3} placeholder="e.g. I forgot I use HubSpot as my CRM. Also I cannot connect Slack to third-party apps." value={refinement} onChange={e => setRefinement(e.target.value)} style={{ resize: "vertical", marginBottom: 10 }} />
-              <div style={{ display: "flex", gap: 8 }}>
-                <button className="btn-p" onClick={() => handleGenerate(true)} disabled={!refinement.trim()} style={{ flex: 1 }}>Re-Analyse with Update →</button>
-                <button className="btn-s" style={{ fontSize: 12 }} onClick={startFresh}>↺ Start Over</button>
-              </div>
-            </div>
-
-            <p style={{ fontSize: 10, color: "#334155", textAlign: "center" }} className="no-print">💾 Session auto-saved · Use Save button in header anytime</p>
-          </div>
-        )}
-      </div>
-
-      <div style={{ borderTop: "1px solid #1e293b", padding: "13px 24px", textAlign: "center" }} className="no-print">
-        <p style={{ margin: 0, fontSize: 10, color: "#334155" }}>Agentic Flow Designer · Built by Aditya · AI Upskilling Sprint Week 1 · Gemini-powered · April 2026</p>
-      </div>
-    </div>
-  );
+function setState(updates) {
+  state = { ...state, ...updates };
+  if (state.result || state.screen !== "intake") saveState(state);
+  render();
 }
 
-const root = ReactDOM.createRoot(document.getElementById("root"));
-root.render(<App />);
+function toggleAns(qId, opt, isMulti, max) {
+  const prev = { ...state.answers };
+  if (!isMulti) { prev[qId] = opt; }
+  else {
+    const cur = Array.isArray(prev[qId]) ? prev[qId] : [];
+    if (cur.includes(opt)) prev[qId] = cur.filter(o => o !== opt);
+    else if (cur.length < max) prev[qId] = [...cur, opt];
+  }
+  setState({ answers: prev });
+}
+
+function isSel(qId, opt, isMulti) {
+  return isMulti ? (Array.isArray(state.answers[qId]) && state.answers[qId].includes(opt)) : state.answers[qId] === opt;
+}
+
+async function handleIntake() {
+  const i = state.intake;
+  if (!i.userType || !i.useCase?.trim() || !i.usageIntent || !i.execPref) {
+    setState({ error: "Please complete all required fields." }); return;
+  }
+  setState({ error: "", loadStage: "clarify" });
+  try {
+    const prompt = CLARIFY.replace("INTAKE_DATA", JSON.stringify(i));
+    const data = await callAPI("Return only valid JSON. No markdown.", prompt);
+    const qs = data.questions || [];
+    const init = {};
+    qs.forEach(q => { init[q.id] = q.multiSelect ? [] : ""; });
+    setState({ questions: qs, answers: init, screen: "questions", loadStage: null });
+  } catch (e) { setState({ error: "Error: " + e.message, loadStage: null }); }
+}
+
+async function handleGenerate(isRefine) {
+  setState({ error: "", loadStage: "generate" });
+  try {
+    const fmtA = {};
+    Object.entries(state.answers).forEach(([k, v]) => { fmtA[k] = Array.isArray(v) ? v.join(", ") : v; });
+    const payload = { intake: state.intake, clarifyingAnswers: fmtA, questions: state.questions };
+    if (isRefine && state.refinement?.trim()) payload.refinementNote = state.refinement;
+    if (isRefine && state.result) payload.previousAnalysis = { title: state.result.title };
+    const data = await callAPI(SYSPROMPT, JSON.stringify(payload));
+    setState({ result: data, screen: "result", loadStage: null, refinement: "" });
+  } catch (e) { setState({ error: "Error: " + e.message, loadStage: null }); }
+}
+
+function manualSave() {
+  saveState(state);
+  setState({ saveFlash: true });
+  setTimeout(() => setState({ saveFlash: false }), 2000);
+}
+
+function startFresh() {
+  clearState();
+  setState({
+    screen:"intake", intake:{userType:"",field:"",orgType:"",dept:"",company:"",role:"",useCase:"",usageIntent:"",execPref:""},
+    questions:[], answers:{}, result:null, showDetails:false, refinement:"", error:"", loadStage:null, saveFlash:false
+  });
+}
+
+function renderHeader() {
+  const isDark = document.documentElement.getAttribute("data-theme") === "dark";
+  const screens = ["intake","questions","result"];
+  const ci = screens.indexOf(state.screen);
+  return `<header style="position:sticky;top:0;z-index:100;background:var(--surf);border-bottom:1px solid var(--bdr);height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;box-shadow:var(--sh)" class="no-print">
+    <div style="display:flex;align-items:center;gap:10px">
+      <svg width="28" height="28" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect width="32" height="32" rx="8" fill="#4285F4"/>
+        <rect x="6" y="10" width="20" height="3" rx="1.5" fill="white"/>
+        <rect x="6" y="16" width="14" height="3" rx="1.5" fill="white" opacity=".85"/>
+        <rect x="6" y="22" width="17" height="3" rx="1.5" fill="white" opacity=".65"/>
+        <circle cx="27" cy="11.5" r="2.2" fill="white"/>
+        <circle cx="21" cy="17.5" r="2.2" fill="white" opacity=".85"/>
+        <circle cx="24" cy="23.5" r="2.2" fill="white" opacity=".65"/>
+      </svg>
+      <span style="font-size:16px;font-weight:700;color:var(--txt);letter-spacing:-.02em">Blueprint</span>
+      <span style="font-size:12px;color:var(--txt3);font-weight:400;letter-spacing:0" class="hide-sm">AI Workflow Designer</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px">
+      ${state.result ? `<div style="position:relative">
+        <button class="btn-s" style="font-size:12px;padding:7px 12px" onclick="manualSave()">
+          ${state.saveFlash ? "✓ Saved" : "Save"}
+        </button>
+      </div>` : ""}
+      <button class="btn-s" style="font-size:12px;padding:7px 12px" onclick="toggleTheme()">
+        ${isDark ? "☀ Light" : "◑ Dark"}
+      </button>
+      <div style="display:flex;gap:5px;align-items:center">
+        ${screens.map((sc, i) => `
+          <div style="width:7px;height:7px;border-radius:50%;background:${sc===state.screen?"var(--pr)":i<ci?"var(--ok)":"var(--bdr)"}"></div>
+          ${i < screens.length - 1 ? `<div style="width:18px;height:1.5px;background:${i<ci?"var(--ok)":"var(--bdr)"}"></div>` : ""}
+        `).join("")}
+      </div>
+    </div>
+  </header>`;
+}
+
+function renderLoading(stage) {
+  const dur = stage === "clarify" ? "12s" : "28s";
+  const msg = stage === "clarify" ? "Analysing your use case and preparing questions…" : "Building your AI workflow blueprint…";
+  const sub = stage === "clarify" ? "~10 seconds" : "~25 seconds";
+  const steps = stage === "clarify"
+    ? ["Reading your use case", "Identifying requirements", "Preparing questions"]
+    : ["Analysing your answers", "Decomposing into tasks", "Selecting optimal tools", "Checking tool availability", "Calculating costs in ₹", "Assembling your blueprint"];
+  return `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;padding:40px 20px;text-align:center">
+    <div class="spin-el" style="margin-bottom:20px"></div>
+    <p style="font-size:16px;font-weight:500;color:var(--txt);margin-bottom:6px">${msg}</p>
+    <p style="font-size:13px;color:var(--txt2);margin-bottom:24px">${sub}</p>
+    <div style="width:280px;height:4px;background:var(--bg3);border-radius:2px;overflow:hidden;margin-bottom:24px">
+      <div class="pbar" style="--dur:${dur}"></div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-start">
+      ${steps.map((s, i) => `<div style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--txt3)">
+        <div style="width:16px;height:16px;border-radius:50%;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600;color:var(--txt3)">${i+1}</div>
+        ${s}
+      </div>`).join("")}
+    </div>
+  </div>`;
+}
+
+function renderIntake() {
+  const saved = loadState();
+  const ui = k => state.intake[k] || "";
+  const opt = (label, icon, k, v) => `<div class="opt ${ui(k)===v?"sel":""}" onclick="setIntake('${k}','${v}')">
+    ${icon ? `<span style="font-size:16px">${icon}</span>` : ""}
+    <span style="font-weight:${ui(k)===v?"500":"400"}">${label}</span>
+  </div>`;
+
+  let conditional = "";
+  if (ui("userType") === "Student") {
+    conditional = `<div style="margin-bottom:16px">
+      <span class="lbl">Field of study *</span>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px" class="two-col">
+        ${["Arts & Humanities","Engineering & CS","Science & Research","Commerce & Business"].map(f => opt(f,"","field",f)).join("")}
+      </div>
+    </div>`;
+  } else if (ui("userType") === "Working Professional") {
+    conditional = `<div style="margin-bottom:16px;display:grid;gap:9px">
+      <div>
+        <span class="lbl">Organisation size *</span>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px">
+          ${["Startup (< 200)","Mid-size (200–1000)","Enterprise (1000+)"].map(o => `<div class="opt ${ui("orgType")===o?"sel":""}" onclick="setIntake('orgType','${o}')" style="justify-content:center"><span style="font-size:12px;text-align:center">${o}</span></div>`).join("")}
+        </div>
+      </div>
+      <select class="inp" onchange="setIntake('dept',this.value)">
+        <option value="">Department *</option>
+        ${["Operations","Marketing","Sales","HR","Product","Finance","Technology / IT","Other"].map(d => `<option ${ui("dept")===d?"selected":""}>${d}</option>`).join("")}
+      </select>
+      <input class="inp" placeholder="Company name (optional)" value="${ui("company")}" oninput="setIntake('company',this.value)" />
+    </div>`;
+  } else if (ui("userType") === "CXO / Founder") {
+    conditional = `<div style="margin-bottom:16px;display:grid;gap:9px">
+      <select class="inp" onchange="setIntake('role',this.value)">
+        <option value="">Your role *</option>
+        ${["CEO / Founder / MD","CTO / CIO","CMO / VP Marketing","CFO / VP Finance","COO / VP Operations","Other C-Suite"].map(r => `<option ${ui("role")===r?"selected":""}>${r}</option>`).join("")}
+      </select>
+      <select class="inp" onchange="setIntake('dept',this.value)">
+        <option value="">Use case relates to which function? *</option>
+        ${["Operations","Marketing","Sales","HR","Product","Finance","Technology","Other"].map(d => `<option ${ui("dept")===d?"selected":""}>${d}</option>`).join("")}
+      </select>
+      <input class="inp" placeholder="Company name (optional)" value="${ui("company")}" oninput="setIntake('company',this.value)" />
+    </div>`;
+  }
+
+  return `<div class="fu">
+    ${saved?.result ? `<div style="background:var(--pr-bg);border:1px solid var(--bdr);border-radius:var(--rl);padding:12px 16px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+      <span style="font-size:13px;color:var(--pr-tx)">You have a saved session from ${new Date(saved.savedAt).toLocaleDateString("en-IN",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"})}</span>
+      <div style="display:flex;gap:7px">
+        <button class="btn-p" style="width:auto;padding:7px 14px;font-size:12px" onclick="resumeSession()">Resume →</button>
+        <button class="btn-s" style="padding:7px 12px;font-size:12px" onclick="dismissSaved()">Dismiss</button>
+      </div>
+    </div>` : ""}
+
+    <div style="margin-bottom:28px">
+      <h1 style="font-size:26px;font-weight:700;color:var(--txt);margin-bottom:8px;line-height:1.2">Design your <span style="color:var(--pr)">AI workflow</span></h1>
+      <p style="font-size:14px;color:var(--txt2);line-height:1.6">Tell us what you want to automate. Get a step-by-step blueprint with the right tools, platforms, and cost in ₹ — in under 60 seconds.</p>
+    </div>
+
+    ${state.error ? `<div style="background:var(--er-bg);border:1px solid var(--er);border-radius:var(--r);padding:10px 14px;margin-bottom:14px;font-size:13px;color:var(--er-tx)">${state.error}</div>` : ""}
+
+    <div style="margin-bottom:16px">
+      <span class="lbl">1. Who are you? *</span>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px" class="two-col">
+        ${[["Student","🎓"],["Working Professional","💼"],["CXO / Founder","👔"],["Builder / Tinkerer","🔧"],["Other","🙋"]].map(([lb,ic]) => opt(lb, ic, "userType", lb)).join("")}
+      </div>
+    </div>
+
+    ${conditional}
+
+    <div style="margin-bottom:16px">
+      <span class="lbl">2. Describe your use case *</span>
+      <textarea class="inp" rows="4" style="resize:vertical" placeholder="e.g. I want to automatically research companies before my sales calls, pull their latest news and LinkedIn activity, and send myself a briefing 30 minutes before each meeting." oninput="setIntake('useCase',this.value)">${ui("useCase")}</textarea>
+      <p style="font-size:11px;color:var(--txt3);margin-top:5px">2–3 sentences gives the best recommendation</p>
+    </div>
+
+    <div style="margin-bottom:16px">
+      <span class="lbl">3. How will you use this? *</span>
+      <div style="display:flex;gap:7px" class="two-col" style="display:grid;grid-template-columns:1fr 1fr">
+        ${[["Personal / Learning","🧪"],["Production Use","🏭"]].map(([lb,ic]) => `<div class="opt ${ui("usageIntent")===lb?"sel":""}" onclick="setIntake('usageIntent','${lb}')" style="flex:1"><span style="font-size:16px">${ic}</span><span>${lb}</span></div>`).join("")}
+      </div>
+    </div>
+
+    <div style="margin-bottom:24px">
+      <span class="lbl">4. What kind of solution are you looking for? *</span>
+      <div style="display:grid;gap:7px">
+        ${[["⚡","One-time task","I need this done once, not repeatedly"],["🔄","Repeatable workflow","I want this to run on a schedule or trigger"],["🤖","Autonomous agent","I want AI to handle this end-to-end without me"]].map(([ic,lb,desc]) => `
+          <div class="opt ${ui("execPref")===lb?"sel":""}" onclick="setIntake('execPref','${lb}')" style="flex-direction:column;align-items:flex-start;gap:2px">
+            <div style="display:flex;align-items:center;gap:8px"><span style="font-size:16px">${ic}</span><span style="font-weight:500">${lb}</span></div>
+            <span style="font-size:12px;color:var(--txt2);padding-left:24px">${desc}</span>
+          </div>`).join("")}
+      </div>
+    </div>
+
+    <button class="btn-p" onclick="handleIntake()" style="padding:14px">Analyse my use case →</button>
+  </div>`;
+}
+
+function renderQuestions() {
+  const qHtml = state.questions.map((q, qi) => {
+    const isMulti = q.multiSelect === true;
+    const maxSel = q.maxSelections || (isMulti ? 3 : 1);
+    const curArr = isMulti ? (Array.isArray(state.answers[q.id]) ? state.answers[q.id] : []) : [];
+    const opts = q.options.map(opt => {
+      const sel = isSel(q.id, opt, isMulti);
+      const disabled = isMulti && curArr.length >= maxSel && !sel;
+      return `<div class="opt ${sel?"sel":""}" data-qid="${q.id}" data-opt="${opt.replace(/"/g,"&quot;")}" data-multi="${isMulti}" data-max="${maxSel}" style="opacity:${disabled?.4:1};cursor:${disabled?"not-allowed":"pointer"}">
+        <div style="width:14px;height:14px;border-radius:${isMulti?"3px":"50%"};border:1.5px solid ${sel?"var(--pr)":"var(--bdr2)"};background:${sel?"var(--pr)":"transparent"};flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .15s">
+          ${sel ? `<span style="font-size:8px;color:#fff;font-weight:700">✓</span>` : ""}
+        </div>
+        <span style="font-size:13px">${opt}</span>
+      </div>`;
+    }).join("");
+    return `<div class="card">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:9px">
+        <span style="font-size:10px;color:var(--pr-tx);font-weight:700;background:var(--pr-bg);padding:2px 9px;border-radius:20px">Q${qi+1} / ${state.questions.length}</span>
+        ${isMulti ? `<span style="font-size:11px;color:var(--wn-tx);background:var(--wn-bg);padding:2px 8px;border-radius:20px;font-weight:500">Select up to ${maxSel}</span>` : ""}
+      </div>
+      <p style="font-size:14px;font-weight:500;color:var(--txt);margin-bottom:11px;line-height:1.5">${q.question}</p>
+      <div style="display:grid;gap:6px">${opts}</div>
+      ${q.allowOther && !isMulti ? `<input class="inp" style="margin-top:7px" placeholder="Other — describe briefly…" data-qid-other="${q.id}" value="${(state.answers[q.id]||"").startsWith("Other:")?state.answers[q.id].slice(7):""}">` : ""}
+      ${isMulti && curArr.length > 0 ? `<p style="margin-top:7px;font-size:12px;color:var(--pr-tx)">Selected: ${curArr.join(" · ")}</p>` : ""}
+    </div>`;
+  }).join("");
+  return `<div class="fu">
+    <div style="margin-bottom:20px">
+      <div style="display:flex;gap:7px;margin-bottom:9px;flex-wrap:wrap">
+        <span class="pill" style="background:var(--pr-bg);color:var(--pr-tx)">${state.questions.length} questions · one round only</span>
+        <span class="pill" style="background:var(--ok-bg);color:var(--ok-tx)">Checkboxes = pick up to 3</span>
+      </div>
+      <h2 style="font-size:20px;font-weight:600;color:var(--txt);margin-bottom:5px">A few more details</h2>
+      <p style="font-size:13px;color:var(--txt2);line-height:1.5">Including which tools you use and any privacy constraints — so your blueprint is realistic and actionable.</p>
+    </div>
+    ${state.error ? `<div style="background:var(--er-bg);border:1px solid var(--er);border-radius:var(--r);padding:10px 14px;margin-bottom:14px;font-size:13px;color:var(--er-tx)">${state.error}</div>` : ""}
+    ${qHtml}
+    <div style="display:flex;gap:8px;margin-top:16px">
+      <button class="btn-s" onclick="setState({screen:'intake'})">← Back</button>
+      <button class="btn-p" onclick="handleGenerate(false)" style="flex:1">Generate my blueprint →</button>
+    </div>
+  </div>`;
+}
+
+function renderResult() {
+  const r = state.result;
+  const cost = calcCost(r, state.answers, state.questions);
+  const platInfo = PLATDATA[r.platformRecommendation] || PLATDATA["None (Direct LLM)"];
+  const llmInfo = LLMDATA[r.primaryLLM];
+  const vInfo = VDICT[r.freemiumVerdict] || VDICT["Freemium to start upgrade likely"];
+  const aIcon = AICONS[r.executionApproach] || "⚙";
+
+  const executiveSummary = `
+    <div style="background:var(--pr-bg);border:1px solid var(--bdr);border-radius:var(--rl);padding:20px;margin-bottom:14px;box-shadow:var(--sh)">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:14px">
+        <div style="flex:1;min-width:200px">
+          <span class="lbl" style="color:var(--pr-tx)">Your blueprint</span>
+          <h2 style="font-size:20px;font-weight:700;color:var(--txt);line-height:1.25;margin-bottom:6px">${r.title}</h2>
+          <p style="font-size:13px;color:var(--txt2);line-height:1.55">${r.executionRationale}</p>
+        </div>
+        ${cost ? `<div style="text-align:right;flex-shrink:0">
+          <p style="font-size:11px;font-weight:600;color:var(--txt3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px">Est. monthly cost</p>
+          <p style="font-size:26px;font-weight:700;color:var(--txt);line-height:1">₹${Math.round(cost.inr).toLocaleString("en-IN")}</p>
+          <p style="font-size:11px;color:var(--txt3);margin-top:2px">≈ $${cost.usd.toFixed(2)}/mo</p>
+        </div>` : ""}
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <span class="pill" style="background:var(--pr);color:#fff">${aIcon} ${r.executionApproach}</span>
+        <span class="pill" style="background:var(--surf);color:var(--txt);border:1px solid var(--bdr)">🔧 ${r.platformRecommendation}</span>
+        <span class="pill" style="background:var(--surf);color:var(--txt);border:1px solid var(--bdr)">🤖 ${r.primaryLLM}</span>
+        <span class="pill" style="background:${vInfo.bg};color:${vInfo.color}">${vInfo.label}</span>
+      </div>
+    </div>`;
+
+  const cliffWarn = r.cliffWarning ? `<div style="background:var(--er-bg);border:1px solid var(--er);border-radius:var(--r);padding:12px 15px;margin-bottom:12px;display:flex;gap:9px">
+    <span style="flex-shrink:0;font-size:16px">⚠</span>
+    <div><p style="margin:0 0 2px;font-size:13px;font-weight:600;color:var(--er-tx)">Cost notice — long-context pricing</p><p style="margin:0;font-size:12px;color:var(--txt2);line-height:1.5">${r.cliffWarning}</p></div>
+  </div>` : "";
+
+  const flowHtml = `<div class="card">
+    <span class="lbl">Workflow overview</span>
+    <div style="display:flex;flex-wrap:wrap;gap:7px;align-items:center;margin-bottom:10px">
+      ${r.tasks?.map((t, i) => `
+        <div style="background:var(--bg2);border:1px solid var(--bdr);border-radius:var(--r);padding:9px 12px;text-align:center;min-width:88px;flex-shrink:0">
+          <div style="width:6px;height:6px;border-radius:50%;background:${TCOL[t.type]||"var(--pr)"};margin:0 auto 5px"></div>
+          <div style="font-size:11px;font-weight:600;color:var(--txt);margin-bottom:2px">${t.name}</div>
+          ${t.llm && t.llm !== "None" ? `<div style="font-size:9px;font-weight:500;color:${t.llm?.includes("Claude")?"var(--ok)":t.llm?.includes("Gemini")?"var(--wn)":"var(--pr)"}">${t.llm.split(" ").slice(0,2).join(" ")}</div>` : ""}
+          <div style="font-size:9px;color:var(--txt3)">${t.platform||""}</div>
+        </div>
+        ${i < r.tasks.length - 1 ? `<span style="color:var(--bdr2);font-size:14px;flex-shrink:0">→</span>` : ""}
+      `).join("")}
+    </div>
+    ${r.llmDistribution?.length > 0 ? `<div style="display:flex;gap:7px;flex-wrap:wrap;padding-top:10px;border-top:1px solid var(--bdr);align-items:center">
+      <span style="font-size:11px;color:var(--txt3);font-weight:500">AI engines used:</span>
+      ${r.llmDistribution.map(d => {
+        const c = d.llm?.includes("Claude")?"var(--ok)":d.llm?.includes("Gemini")?"var(--wn)":"var(--pr)";
+        const bg = d.llm?.includes("Claude")?"var(--ok-bg)":d.llm?.includes("Gemini")?"var(--wn-bg)":"var(--pr-bg)";
+        return `<span class="pill" style="background:${bg};color:${c};border:1px solid ${c}40">${d.llm} · ${d.taskCount} step${d.taskCount>1?"s":""}</span>`;
+      }).join("")}
+    </div>` : ""}
+  </div>`;
+
+  const threeGrid = `<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:12px" class="three-col">
+    <div class="card" style="margin-bottom:0">
+      <span class="lbl">Platform</span>
+      <p style="font-size:14px;font-weight:600;color:var(--txt);margin-bottom:4px">${r.platformRecommendation}</p>
+      <p style="font-size:12px;color:var(--txt2);margin-bottom:8px;line-height:1.45">${r.platformRationale}</p>
+      <span class="pill" style="background:${vInfo.bg};color:${vInfo.color};margin-bottom:8px">${vInfo.label}</span>
+      ${platInfo ? `<div style="border-top:1px solid var(--bdr);padding-top:8px;margin-top:6px">
+        <p style="font-size:11px;color:var(--txt3);margin-bottom:2px">Free tier: ${platInfo.free}</p>
+        <p style="font-size:11px;color:var(--wn-tx)">Paid: ${platInfo.paid} / ${platInfo.paidINR}</p>
+      </div>` : ""}
+    </div>
+    <div class="card" style="margin-bottom:0">
+      <span class="lbl">AI engine</span>
+      <p style="font-size:14px;font-weight:600;color:var(--txt);margin-bottom:4px">${r.primaryLLM}</p>
+      <p style="font-size:12px;color:var(--txt2);margin-bottom:8px;line-height:1.45">${r.llmRationale}</p>
+      ${llmInfo ? `<div style="border-top:1px solid var(--bdr);padding-top:8px;margin-top:6px">
+        <p style="font-size:11px;color:var(--ok-tx);margin-bottom:2px">Input: $${llmInfo.in}/1M · ${inr(llmInfo.in/1000)}/K</p>
+        <p style="font-size:11px;color:var(--wn-tx);margin-bottom:2px">Output: $${llmInfo.out}/1M · ${inr(llmInfo.out/1000)}/K</p>
+        <p style="font-size:11px;color:var(--txt3)">${llmInfo.note}</p>
+      </div>` : ""}
+    </div>
+    <div class="card" style="margin-bottom:0">
+      <span class="lbl">Monthly cost estimate</span>
+      ${cost ? `
+        <div class="row"><span style="color:var(--txt2)">Platform</span><span style="font-weight:600;color:${r.freemiumVerdict==="Freemium sufficient"?"var(--ok-tx)":"var(--wn-tx)"}">${r.freemiumVerdict==="Freemium sufficient"?"Free to start":platInfo?.paidINR}</span></div>
+        <div class="row"><span style="color:var(--txt2)">AI API (~${cost.runs} runs/mo)</span><span style="font-weight:600">₹${Math.round(cost.inr).toLocaleString("en-IN")}</span></div>
+        ${cost.buf > 1 ? `<div class="row"><span style="font-size:11px;color:var(--txt3)">Reasoning buffer (40%)</span><span style="font-size:11px;color:var(--wn-tx)">included</span></div>` : ""}
+        <div style="margin-top:10px;background:var(--bg2);border-radius:var(--r);padding:10px;text-align:center">
+          <p style="font-size:10px;color:var(--txt3);margin-bottom:2px">Total estimated</p>
+          <p style="font-size:22px;font-weight:700;color:var(--txt)">₹${Math.round(cost.inr).toLocaleString("en-IN")}</p>
+          <p style="font-size:11px;color:var(--txt3)">≈ $${cost.usd.toFixed(2)}/mo</p>
+        </div>` : `<p style="font-size:12px;color:var(--txt2)">Varies by usage</p>`}
+    </div>
+  </div>`;
+
+  const billingNote = `<div style="background:var(--pr-bg);border:1px solid var(--bdr);border-radius:var(--r);padding:10px 14px;margin-bottom:12px;display:flex;gap:8px">
+    <span style="font-size:14px;flex-shrink:0">ℹ</span>
+    <p style="margin:0;font-size:12px;color:var(--txt2);line-height:1.5">${r.billingNote}</p>
+  </div>`;
+
+  const taskBreakdown = `<div class="card">
+    <span class="lbl">How it works · ${r.tasks?.length} steps</span>
+    ${r.tasks?.map((t, i) => {
+      const llmClr = t.llm?.includes("Claude") ? "var(--ok)" : t.llm?.includes("Gemini") ? "var(--wn)" : t.llm?.includes("GPT") ? "var(--pr)" : "var(--txt3)";
+      const llmBg = t.llm?.includes("Claude") ? "var(--ok-bg)" : t.llm?.includes("Gemini") ? "var(--wn-bg)" : t.llm?.includes("GPT") ? "var(--pr-bg)" : "var(--bg2)";
+      return `<div style="display:flex;gap:11px;padding:10px 0;border-bottom:${i<r.tasks.length-1?"1px solid var(--bdr)":"none"}">
+        <div style="width:22px;height:22px;border-radius:6px;background:${TCOL[t.type]||"var(--pr)"}18;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:10px;font-weight:700;color:${TCOL[t.type]||"var(--pr)"}">${t.number}</div>
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;align-items:center;gap:7px;margin-bottom:3px;flex-wrap:wrap">
+            <span style="font-size:13px;font-weight:600;color:var(--txt)">${t.name}</span>
+            <span class="pill" style="background:${TCOL[t.type]||"var(--pr)"}15;color:${TCOL[t.type]||"var(--pr)"};font-size:10px">${t.type}</span>
+          </div>
+          <p style="margin:0 0 5px;font-size:12px;color:var(--txt2);line-height:1.45">${t.description}</p>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+            ${t.llm && t.llm !== "None" ? `<span class="pill" style="background:${llmBg};color:${llmClr};border:1px solid ${llmClr}30;font-size:10px">🤖 ${t.llm}</span>${t.llmReason?`<span style="font-size:10px;color:var(--txt3);font-style:italic">${t.llmReason}</span>`:""}` : ""}
+            ${t.platform ? `<span class="pill" style="background:var(--bg2);color:var(--txt2);font-size:10px">🔧 ${t.platform}</span>` : ""}
+          </div>
+        </div>
+      </div>`;
+    }).join("")}
+  </div>`;
+
+  const toolAnalysis = (() => {
+    const ta = r.toolAnalysis; if (!ta) return "";
+    const pills = (ta.toolsRequired||[]).map(t => {
+      const has = (ta.toolsUserHas||[]).includes(t);
+      const blocked = (ta.toolsBlocked||[]).includes(t);
+      const missing = !has && !blocked;
+      const c = missing ? "var(--er-tx)" : blocked ? "var(--wn-tx)" : "var(--ok-tx)";
+      const bg = missing ? "var(--er-bg)" : blocked ? "var(--wn-bg)" : "var(--ok-bg)";
+      return `<span class="pill" style="background:${bg};color:${c}">${missing?"⚠":blocked?"🔒":"✓"} ${t}</span>`;
+    }).join("");
+    const gaps = (ta.toolsGap||[]).filter(g=>g.tool).map(g => `<div style="background:var(--er-bg);border:1px solid var(--er);border-radius:var(--r);padding:10px 12px;margin-bottom:7px">
+      <p style="margin:0 0 3px;font-size:13px;font-weight:600;color:var(--er-tx)">${g.tool}</p>
+      <p style="margin:0 0 4px;font-size:12px;color:var(--txt2)">${g.reason}</p>
+      ${g.workaround?`<p style="margin:0;font-size:11px;color:var(--txt3)">💡 Alternative: ${g.workaround}</p>`:""}
+    </div>`).join("");
+    const conflicts = (ta.toolsPrivacyConflict||[]).filter(c=>c.tool).map(c => `<div style="background:var(--wn-bg);border:1px solid var(--wn);border-radius:var(--r);padding:10px 12px;margin-bottom:7px">
+      <p style="margin:0 0 3px;font-size:13px;font-weight:600;color:var(--wn-tx)">${c.tool}</p>
+      <p style="margin:0 0 4px;font-size:12px;color:var(--txt2)">${c.issue}</p>
+      ${c.workaround?`<p style="margin:0;font-size:11px;color:var(--txt3)">💡 Alternative: ${c.workaround}</p>`:""}
+    </div>`).join("");
+    const noIssues = !gaps && !conflicts ? `<div style="display:flex;align-items:center;gap:7px;padding:10px;background:var(--ok-bg);border-radius:var(--r)"><span>✓</span><span style="font-size:13px;color:var(--ok-tx)">You have all the tools needed. No gaps or privacy conflicts detected.</span></div>` : "";
+    return `<div class="card">
+      <span class="lbl">Tools you need</span>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:${gaps||conflicts?"12px":"0"}">${pills}</div>
+      ${gaps?`<p style="font-size:11px;font-weight:600;color:var(--er-tx);margin-bottom:7px">Tools you need but don't currently have</p>${gaps}`:""}
+      ${conflicts?`<p style="font-size:11px;font-weight:600;color:var(--wn-tx);margin-bottom:7px">Tools required but restricted by your data policy</p>${conflicts}`:""}
+      ${noIssues}
+    </div>`;
+  })();
+
+  const roiSection = (() => {
+    if (!r.roiAssessment) return "";
+    const alts = (r.roiAssessment.alternatives||[]).map(a => `<div style="background:var(--bg2);border:1px solid var(--bdr);border-radius:var(--r);padding:12px 14px">
+      <p style="margin:0 0 4px;font-size:13px;font-weight:600;color:var(--txt)">${a.name}</p>
+      <p style="margin:0 0 6px;font-size:12px;color:var(--txt2);line-height:1.4">${a.description}</p>
+      <div style="display:flex;gap:5px;flex-wrap:wrap">
+        <span class="pill" style="background:var(--ok-bg);color:var(--ok-tx);font-size:11px">💰 ${a.cost}</span>
+        <span class="pill" style="background:var(--bg3);color:var(--txt2);font-size:11px">Best for: ${a.bestFor}</span>
+      </div>
+    </div>`).join("");
+    return `<div class="card">
+      <div style="display:flex;align-items:center;gap:9px;margin-bottom:12px">
+        <span style="font-size:18px">${r.roiAssessment.worthIt?"✅":"🤔"}</span>
+        <div>
+          <span class="lbl" style="margin-bottom:1px">Is it worth it?</span>
+          <p style="font-size:13px;font-weight:500;color:${r.roiAssessment.worthIt?"var(--ok-tx)":"var(--wn-tx)"};margin:0">${r.roiAssessment.worthIt?"Worth the investment":"Consider simpler alternatives first"}</p>
+        </div>
+      </div>
+      <p style="font-size:13px;color:var(--txt2);line-height:1.55;margin-bottom:${alts?"14px":"0"}">${r.roiAssessment.summary}</p>
+      ${alts?`<span class="lbl">Simpler alternatives — you decide what works</span><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px" class="two-col">${alts}</div>`:""}
+    </div>`;
+  })();
+
+  const stepsHtml = state.showDetails && r.detailedSteps?.length > 0 ? `<div class="fu">
+    <h3 style="font-size:16px;font-weight:600;color:var(--txt);margin-bottom:4px">Step-by-step build guide</h3>
+    <p style="font-size:13px;color:var(--txt2);margin-bottom:14px">Written for beginners. No prior experience needed.</p>
+    ${r.detailedSteps.map(step => `
+      <div class="step-card">
+        <div style="display:flex;align-items:center;gap:9px;margin-bottom:10px">
+          <div style="width:24px;height:24px;border-radius:6px;background:var(--pr-bg);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:var(--pr-tx);flex-shrink:0">S${step.taskNumber}</div>
+          <div>
+            <p style="margin:0;font-size:13px;font-weight:600;color:var(--txt)">${step.taskName}</p>
+            <p style="margin:0;font-size:11px;color:var(--txt3)">⏱ ${step.setupTime}</p>
+          </div>
+        </div>
+        <p style="font-size:13px;color:var(--txt2);line-height:1.55;margin-bottom:10px">${step.description}</p>
+        ${step.promptTemplate ? `<div style="background:var(--bg3);border-radius:var(--r);padding:10px 13px;margin-bottom:10px">
+          <p style="margin:0 0 4px;font-size:10px;font-weight:600;color:var(--txt3);text-transform:uppercase;letter-spacing:.07em">Prompt to use</p>
+          <p style="margin:0;font-size:12px;color:var(--pr-tx);font-family:monospace;line-height:1.55;white-space:pre-wrap">${step.promptTemplate}</p>
+        </div>` : ""}
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:7px">
+          <div style="background:var(--bg2);border-radius:var(--r);padding:8px 10px"><p style="margin:0 0 2px;font-size:10px;color:var(--txt3);text-transform:uppercase">Input</p><p style="margin:0;font-size:12px;color:var(--txt2)">${step.input}</p></div>
+          <div style="background:var(--bg2);border-radius:var(--r);padding:8px 10px"><p style="margin:0 0 2px;font-size:10px;color:var(--txt3);text-transform:uppercase">Output</p><p style="margin:0;font-size:12px;color:var(--txt2)">${step.output}</p></div>
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          ${step.platform?`<span class="pill" style="background:var(--bg2);color:var(--txt2);font-size:11px">🔧 ${step.platform}</span>`:""}
+          ${step.llm&&step.llm!=="None"?`<span class="pill" style="background:var(--bg2);color:var(--txt2);font-size:11px">🤖 ${step.llm}</span>`:""}
+        </div>
+        ${step.connection?`<p style="margin:8px 0 0;font-size:11px;color:var(--txt3)">→ ${step.connection}</p>`:""}
+      </div>`).join("")}
+  </div>` : "";
+
+  const disclaimer = `<div style="background:var(--bg2);border:1px solid var(--bdr);border-radius:var(--r);padding:9px 13px;margin-bottom:16px">
+    <p style="margin:0;font-size:11px;color:var(--txt3);line-height:1.5">⚠ Cost estimates are approximate. Platform pricing verified April 2026 — verify at: make.com · n8n.io · zapier.com · relevanceai.com · anthropic.com · openai.com · ai.google.dev · USD/INR at ₹84 (verify current rate)</p>
+  </div>`;
+
+  const refinementBox = `<div class="card no-print" style="border:1px solid var(--bdr2)">
+    <span class="lbl" style="color:var(--pr-tx)">🔁 Refine your blueprint</span>
+    <p style="font-size:13px;color:var(--txt2);margin-bottom:10px;line-height:1.45">Add new context, correct something, or change your requirements — the entire blueprint will be regenerated.</p>
+    <textarea class="inp" rows="3" style="resize:vertical;margin-bottom:10px" placeholder="e.g. I forgot to mention I use HubSpot as my CRM. Also, my company won't allow connecting Slack to external AI tools." id="refineArea">${state.refinement||""}</textarea>
+    <div style="display:flex;gap:8px">
+      <button class="btn-p" id="refineBtn" onclick="doRefine()" style="flex:1">Re-analyse with update →</button>
+      <button class="btn-s" onclick="startFresh()">↺ Start over</button>
+    </div>
+  </div>`;
+
+  return `<div class="fu">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:6px;flex-wrap:wrap" class="no-print">
+      <div></div>
+      <button class="btn-s" style="font-size:12px;padding:7px 12px" onclick="window.print()">🖨 Print / Save PDF</button>
+    </div>
+    ${executiveSummary}
+    ${cliffWarn}
+    ${flowHtml}
+    ${threeGrid}
+    ${billingNote}
+    ${taskBreakdown}
+    ${toolAnalysis}
+    ${roiSection}
+    ${disclaimer}
+    <div style="margin-bottom:10px" class="no-print">
+      <button class="btn-p" onclick="setState({showDetails:!state.showDetails})" style="background:var(--bg2);color:var(--txt);border:1px solid var(--bdr)">
+        ${state.showDetails ? "▲ Hide step-by-step guide" : "▼ Get step-by-step build guide"}
+      </button>
+    </div>
+    ${stepsHtml}
+    ${refinementBox}
+    <p style="text-align:center;font-size:11px;color:var(--txt3);margin-top:12px" class="no-print">Session auto-saved · Use the Save button in the header anytime</p>
+  </div>`;
+}
+
+function render() {
+  const app = document.getElementById("app");
+  if (!app) return;
+
+  if (state.loadStage) {
+    app.innerHTML = renderHeader() + `<div style="max-width:680px;margin:0 auto;padding:20px">${renderLoading(state.loadStage)}</div>` + renderFooter();
+    return;
+  }
+
+  const maxW = (state.result && state.screen === "result") ? "980px" : "660px";
+  let content = "";
+  if (state.screen === "intake") content = renderIntake();
+  else if (state.screen === "questions") content = renderQuestions();
+  else if (state.screen === "result" && state.result) content = renderResult();
+
+  app.innerHTML = renderHeader() + `<div style="max-width:${maxW};margin:0 auto;padding:28px 20px">${content}</div>` + renderFooter();
+
+  document.querySelectorAll("[data-qid]").forEach(el => {
+    el.addEventListener("click", () => {
+      const qId = parseInt(el.dataset.qid);
+      const opt = el.dataset.opt;
+      const isMulti = el.dataset.multi === "true";
+      const max = parseInt(el.dataset.max) || 3;
+      const curArr = isMulti ? (Array.isArray(state.answers[qId]) ? state.answers[qId] : []) : [];
+      const sel = isMulti ? curArr.includes(opt) : false;
+      const disabled = isMulti && curArr.length >= max && !sel;
+      if (!disabled) toggleAns(qId, opt, isMulti, max);
+    });
+  });
+
+  document.querySelectorAll("[data-qid-other]").forEach(el => {
+    el.addEventListener("input", () => {
+      const qId = parseInt(el.dataset.qidOther);
+      const prev = { ...state.answers };
+      prev[qId] = el.value ? `Other: ${el.value}` : "";
+      state.answers = prev;
+    });
+  });
+
+  const refineArea = document.getElementById("refineArea");
+  if (refineArea) refineArea.oninput = e => { state.refinement = e.target.value; };
+}
+
+function renderFooter() {
+  return `<footer style="border-top:1px solid var(--bdr);padding:14px 24px;text-align:center;margin-top:20px" class="no-print">
+    <p style="font-size:11px;color:var(--txt3)">Blueprint · AI Workflow Designer · Built by Aditya · AI Upskilling Sprint Week 1 · Powered by Gemini · April 2026</p>
+  </footer>`;
+}
+
+window.setIntake = (k, v) => setState({ intake: { ...state.intake, [k]: v } });
+window.setState = setState;
+window.handleIntake = handleIntake;
+window.handleGenerate = handleGenerate;
+window.doRefine = () => { state.refinement = document.getElementById("refineArea")?.value || ""; handleGenerate(true); };
+window.startFresh = startFresh;
+window.manualSave = manualSave;
+window.toggleTheme = toggleTheme;
+window.resumeSession = () => {
+  const s = loadState();
+  if (s) setState({ ...s, loadStage: null, error: "", saveFlash: false });
+};
+window.dismissSaved = () => { clearState(); render(); };
+
+render();
 </script>
 </body>
 </html>
