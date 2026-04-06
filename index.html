@@ -208,6 +208,28 @@ ROI: Honest. Compare vs Claude Skills/Gemini Gems/Custom GPT/schedulers. Let use
 Return ONLY valid JSON:
 {"title":"max 8 words","executionApproach":"Direct LLM Usage|LLM Skill / Prompt Template|Scheduled Automation|Full Autonomous Agent","executionRationale":"one sentence","tasks":[{"number":1,"name":"","type":"Trigger|Data Fetch|Research|Analysis|Content Generation|Decision|Data Transform|Output","llm":"model or None","llmReason":"one phrase why","platform":"","description":""}],"visualFlow":"[Task|LLM|Tool]→[Task|LLM|Tool]","llmDistribution":[{"llm":"Claude Sonnet 4.6","taskCount":1,"taskNames":[""]}],"platformRecommendation":"platform name","platformRationale":"why (budget reasoning)","llmRationale":"overall LLM strategy","freemiumVerdict":"Freemium sufficient|Freemium to start upgrade likely|Paid required","primaryLLM":"model name","billingNote":"plain English","cliffWarning":null,"toolAnalysis":{"toolsRequired":[],"toolsUserHas":[],"toolsBlocked":[],"toolsGap":[{"tool":"","reason":"","workaround":""}],"toolsPrivacyConflict":[{"tool":"","issue":"","workaround":""}]},"roiAssessment":{"worthIt":true,"summary":"","alternatives":[{"name":"","description":"","cost":"","bestFor":""}]},"detailedSteps":[{"taskNumber":1,"taskName":"","description":"","platform":"","llm":"","promptTemplate":"","input":"","output":"","connection":"","setupTime":""}]}`;
 
+function extractJSON(raw) {
+  if (!raw || typeof raw !== "string") throw new Error("Empty response from AI");
+  let text = raw.trim();
+  // Strip markdown fences
+  text = text.replace(/^```json\s*/i, "").replace(/^```\s*/i, "").replace(/```\s*$/g, "").trim();
+  // Try direct parse
+  try { return JSON.parse(text); } catch {}
+  // Find outermost JSON object
+  const start = text.indexOf("{");
+  const end = text.lastIndexOf("}");
+  if (start !== -1 && end !== -1 && end > start) {
+    try { return JSON.parse(text.slice(start, end + 1)); } catch {}
+  }
+  // Find outermost JSON array
+  const aStart = text.indexOf("[");
+  const aEnd = text.lastIndexOf("]");
+  if (aStart !== -1 && aEnd !== -1 && aEnd > aStart) {
+    try { return JSON.parse(text.slice(aStart, aEnd + 1)); } catch {}
+  }
+  throw new Error("Could not parse AI response as JSON. Please try again.");
+}
+
 async function callAPI(system, user) {
   const r = await fetch("/api/generate", {
     method: "POST",
@@ -219,7 +241,7 @@ async function callAPI(system, user) {
     throw new Error(err.error || `API error ${r.status}`);
   }
   const d = await r.json();
-  return JSON.parse((d.text || "").replace(/```json|```/g, "").trim());
+  return extractJSON(d.text || "");
 }
 
 function calcCost(result, answers, questions) {
@@ -481,7 +503,7 @@ function renderIntake() {
 function renderQuestions() {
   const qHtml = state.questions.map((q, qi) => {
     const isMulti = q.multiSelect === true;
-    const maxSel = q.maxSelections || (isMulti ? 3 : 1);
+    const maxSel = q.maxSelections || (isMulti ? 5 : 1);
     const curArr = isMulti ? (Array.isArray(state.answers[q.id]) ? state.answers[q.id] : []) : [];
     const opts = q.options.map(opt => {
       const sel = isSel(q.id, opt, isMulti);
@@ -500,7 +522,10 @@ function renderQuestions() {
       </div>
       <p style="font-size:14px;font-weight:500;color:var(--txt);margin-bottom:11px;line-height:1.5">${q.question}</p>
       <div style="display:grid;gap:6px">${opts}</div>
-      ${q.allowOther && !isMulti ? `<input class="inp" style="margin-top:7px" placeholder="Other — describe briefly…" data-qid-other="${q.id}" value="${(state.answers[q.id]||"").startsWith("Other:")?state.answers[q.id].slice(7):""}">` : ""}
+      <div style="margin-top:8px;display:flex;align-items:center;gap:8px">
+        <div style="width:14px;height:14px;border-radius:${isMulti?"3px":"50%"};border:1.5px solid var(--bdr2);flex-shrink:0"></div>
+        <input class="inp" style="font-size:13px;padding:8px 12px" placeholder="Other — type anything not listed above…" data-qid-other="${q.id}" data-multi="${isMulti}" value="${(() => { const v = state.answers[q.id]; if (isMulti) { const others = (Array.isArray(v)?v:[]).filter(x=>x.startsWith("Other:")); return others.length?others[0].slice(7):""; } return (typeof v==="string"&&v.startsWith("Other:"))?v.slice(7):""; })()}" />
+      </div>
       ${isMulti && curArr.length > 0 ? `<p style="margin-top:7px;font-size:12px;color:var(--pr-tx)">Selected: ${curArr.join(" · ")}</p>` : ""}
     </div>`;
   }).join("");
@@ -508,7 +533,7 @@ function renderQuestions() {
     <div style="margin-bottom:20px">
       <div style="display:flex;gap:7px;margin-bottom:9px;flex-wrap:wrap">
         <span class="pill" style="background:var(--pr-bg);color:var(--pr-tx)">${state.questions.length} questions · one round only</span>
-        <span class="pill" style="background:var(--ok-bg);color:var(--ok-tx)">Checkboxes = pick up to 3</span>
+        <span class="pill" style="background:var(--ok-bg);color:var(--ok-tx)">Checkboxes = pick up to 5</span>
       </div>
       <h2 style="font-size:20px;font-weight:600;color:var(--txt);margin-bottom:5px">A few more details</h2>
       <p style="font-size:13px;color:var(--txt2);line-height:1.5">Including which tools you use and any privacy constraints — so your blueprint is realistic and actionable.</p>
@@ -796,8 +821,16 @@ function render() {
   document.querySelectorAll("[data-qid-other]").forEach(el => {
     el.addEventListener("input", () => {
       const qId = parseInt(el.dataset.qidOther);
+      const isMulti = el.dataset.multi === "true";
+      const val = el.value.trim();
       const prev = { ...state.answers };
-      prev[qId] = el.value ? `Other: ${el.value}` : "";
+      if (isMulti) {
+        const cur = Array.isArray(prev[qId]) ? prev[qId] : [];
+        const withoutOther = cur.filter(x => !x.startsWith("Other:"));
+        prev[qId] = val ? [...withoutOther, `Other: ${val}`] : withoutOther;
+      } else {
+        prev[qId] = val ? `Other: ${val}` : "";
+      }
       state.answers = prev;
     });
   });
