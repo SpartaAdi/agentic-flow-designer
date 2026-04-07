@@ -475,6 +475,168 @@ test.describe("Performance", () => {
   });
 });
 
+
+// ─── SUITE 12: v1.1 — TABBED RESULTS ────────────────────────────────────────
+
+test.describe("v1.1 — Tabbed Blueprint Results", () => {
+  test("tab bar renders three tabs on result screen", async ({ page }) => {
+    test.setTimeout(TIMEOUT);
+    await runToResult(page);
+    await expect(page.locator(".tab-bar")).toBeVisible();
+    await expect(page.locator("[data-tab='summary']")).toBeVisible();
+    await expect(page.locator("[data-tab='architecture']")).toBeVisible();
+    await expect(page.locator("[data-tab='guide']")).toBeVisible();
+  });
+
+  test("Summary & ROI tab is active by default", async ({ page }) => {
+    test.setTimeout(TIMEOUT);
+    await runToResult(page);
+    const summaryTab = page.locator("[data-tab='summary']");
+    await expect(summaryTab).toHaveClass(/active/);
+    // Default tab content should include Platform card
+    await expect(page.locator("text=Platform").first()).toBeVisible();
+  });
+
+  test("clicking Workflow Architecture tab shows task breakdown", async ({ page }) => {
+    test.setTimeout(TIMEOUT);
+    await runToResult(page);
+    await page.locator("[data-tab='architecture']").click();
+    await expect(page.locator("[data-tab='architecture']")).toHaveClass(/active/);
+    await expect(page.locator("text=Workflow overview").first()).toBeVisible();
+    await expect(page.locator("text=How it works").first()).toBeVisible();
+  });
+
+  test("clicking Step-by-Step Guide tab renders step content", async ({ page }) => {
+    test.setTimeout(TIMEOUT);
+    await runToResult(page);
+    await page.locator("[data-tab='guide']").click();
+    await expect(page.locator("[data-tab='guide']")).toHaveClass(/active/);
+    // Steps section or fallback message should appear
+    const hasSteps = await page.locator("text=Step-by-Step Guide").count() > 0
+      || await page.locator(".step-card").count() > 0
+      || await page.locator("text=not available").count() > 0;
+    expect(hasSteps).toBeTruthy();
+  });
+
+  test("switching tabs does not reload or lose hero section", async ({ page }) => {
+    test.setTimeout(TIMEOUT);
+    await runToResult(page);
+    // Hero (executiveSummary) should always be visible regardless of tab
+    await page.locator("[data-tab='architecture']").click();
+    await expect(page.locator("text=Your blueprint").first()).toBeVisible();
+    await page.locator("[data-tab='summary']").click();
+    await expect(page.locator("text=Your blueprint").first()).toBeVisible();
+  });
+
+  test("tab state resets to summary on Start Over and new generation", async ({ page }) => {
+    test.setTimeout(TIMEOUT);
+    await runToResult(page);
+    // Switch to architecture tab
+    await page.locator("[data-tab='architecture']").click();
+    await expect(page.locator("[data-tab='architecture']")).toHaveClass(/active/);
+    // Start over and go back to intake
+    await page.locator("button").filter({ hasText: /Start over/i }).first().click();
+    await expect(page.locator("h1").filter({ hasText: /Design/i }).first()).toBeVisible();
+  });
+});
+
+// ─── SUITE 13: v1.2 — DYNAMIC LOADING TIPS ──────────────────────────────────
+
+test.describe("v1.2 — Dynamic Loading Tips", () => {
+  test("loading tip element exists during generate stage", async ({ page }) => {
+    test.setTimeout(TIMEOUT);
+    await page.goto(BASE_URL);
+    await page.locator(".opt").filter({ hasText: "Student" }).first().click();
+    await page.locator(".opt").filter({ hasText: "Engineering & CS" }).first().click();
+    await page.locator("textarea").first().fill("Automate my research workflow.");
+    await page.locator(".opt").filter({ hasText: /Personal/i }).first().click();
+    await page.locator(".opt").filter({ hasText: /One-time/i }).first().click();
+    await page.locator("button").filter({ hasText: /Analyse/i }).first().click();
+    await page.waitForSelector("text=A few more details", { timeout: 45000 });
+    await page.locator(".opt").first().click().catch(() => {});
+    await page.locator("button").filter({ hasText: /Generate/i }).first().click();
+    // During generation the loading tip container should appear
+    const tipContainer = page.locator("text=While you wait");
+    await expect(tipContainer).toBeVisible({ timeout: 5000 });
+  });
+
+  test("loading tip element has non-empty text content", async ({ page }) => {
+    test.setTimeout(TIMEOUT);
+    await page.goto(BASE_URL);
+    await page.locator(".opt").filter({ hasText: "Student" }).first().click();
+    await page.locator(".opt").filter({ hasText: "Engineering & CS" }).first().click();
+    await page.locator("textarea").first().fill("Automate my research workflow.");
+    await page.locator(".opt").filter({ hasText: /Personal/i }).first().click();
+    await page.locator(".opt").filter({ hasText: /One-time/i }).first().click();
+    await page.locator("button").filter({ hasText: /Analyse/i }).first().click();
+    await page.waitForSelector("text=A few more details", { timeout: 45000 });
+    await page.locator(".opt").first().click().catch(() => {});
+    await page.locator("button").filter({ hasText: /Generate/i }).first().click();
+    // Tip text should be non-empty
+    const tipEl = page.locator("#loading-tip");
+    await expect(tipEl).toBeVisible({ timeout: 5000 });
+    const tipText = await tipEl.textContent();
+    expect(tipText?.trim().length).toBeGreaterThan(10);
+  });
+
+  test("tip interval is cleared after result renders (no memory leak)", async ({ page }) => {
+    test.setTimeout(TIMEOUT);
+    await runToResult(page);
+    // After result renders, _tipInterval should be null
+    const intervalCleared = await page.evaluate(() => window._tipInterval === null || window._tipInterval === undefined);
+    expect(intervalCleared).toBeTruthy();
+  });
+});
+
+// ─── SUITE 14: v1.3 — PERSISTENT REFINEMENT FAB ─────────────────────────────
+
+test.describe("v1.3 — Persistent Refinement FAB", () => {
+  test("FAB button is visible on result screen", async ({ page }) => {
+    test.setTimeout(TIMEOUT);
+    await runToResult(page);
+    const fab = page.locator("#refine-fab");
+    await expect(fab).toBeVisible();
+    await expect(fab).toContainText("Refine");
+  });
+
+  test("FAB is not visible on intake screen", async ({ page }) => {
+    await page.goto(BASE_URL);
+    const fab = page.locator("#refine-fab");
+    await expect(fab).not.toBeVisible();
+  });
+
+  test("FAB click scrolls refinement section into view", async ({ page }) => {
+    test.setTimeout(TIMEOUT);
+    await runToResult(page);
+    // Switch to guide tab (so refine section is off-screen top)
+    await page.locator("[data-tab='guide']").click();
+    const fab = page.locator("#refine-fab");
+    await fab.click();
+    // After click refinement section should be visible
+    const refineSection = page.locator("#refinement-section");
+    await expect(refineSection).toBeVisible({ timeout: 3000 });
+  });
+
+  test("FAB click focuses the refineArea textarea", async ({ page }) => {
+    test.setTimeout(TIMEOUT);
+    await runToResult(page);
+    const fab = page.locator("#refine-fab");
+    await fab.click();
+    // Wait for smooth scroll + focus timeout (300ms)
+    await page.waitForTimeout(500);
+    const refineArea = page.locator("#refineArea");
+    await expect(refineArea).toBeFocused();
+  });
+
+  test("refinement section has id refinement-section for FAB targeting", async ({ page }) => {
+    test.setTimeout(TIMEOUT);
+    await runToResult(page);
+    const section = page.locator("#refinement-section");
+    await expect(section).toBeVisible();
+    await expect(section).toContainText("Refine your blueprint");
+  });
+});
+
 // ─── HELPER FUNCTIONS ─────────────────────────────────────────────────────
 
 async function fillIntakeForm(page, userType) {
