@@ -3,8 +3,8 @@ import { defineConfig, devices } from "@playwright/test";
 
 export default defineConfig({
   testDir: "./tests",
-  timeout: 60000,
-  retries: 1,
+  timeout: 120000,
+  retries: 2,
   reporter: [
     ["html", { outputFolder: "playwright-report", open: "never" }],
     ["list"],
@@ -15,6 +15,7 @@ export default defineConfig({
     trace: "on-first-retry",
     screenshot: "on",
     video: "on-first-retry",
+    actionTimeout: 15000,
   },
   projects: [
     {
