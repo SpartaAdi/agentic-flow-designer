@@ -922,7 +922,7 @@ function renderResult() {
       <button class="btn-p" id="refineBtn" onclick="doRefine()" ${!state.refinement?.trim() ? "disabled" : ""} style="flex:1">Re-analyse with update →</button>
       <button class="btn-s" onclick="startFresh()">↺ Start over</button>
     </div>
-  </div>\` : "";
+  </div>`;
 
   // ── FAB ──────────────────────────────────────────────────────────────────
   const fab = state.isReadOnly ? "" : `<button class="fab no-print" id="refine-fab" onclick="scrollToRefine()" title="Refine your blueprint">
