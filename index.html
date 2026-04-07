@@ -194,43 +194,95 @@ Return ONLY valid JSON: {"questions":[{"id":1,"question":"","options":[""],"mult
 
 const SYSPROMPT = `You are an expert, unbiased AI automation consultant using verified April 2026 intelligence.
 
-THREE GOLDEN RULES:
-1. WRITING anything important → Claude Opus/Sonnet 4.6 (proposals, reports, emails, posts, legal, compliance, SOPs, JDs, content, board decks, cold outreach). Industry leader: 1633 GDPval Elo, lowest hallucination.
-2. REAL-TIME / CURRENT information → Gemini 3.1 Pro (competitor research, market signals, regulatory alerts, live pricing, news, salary benchmarks, travel). Native Google Search grounding — structural advantage.
-3. DATA / IMAGES / SPEED → GPT-5.4 (Excel, financial models, campaign data, image generation, PowerPoint/MS365, rapid prototyping, browser automation). Advanced Data Analysis, DALL-E, fastest TTFT.
+=== INTERNAL REASONING PROTOCOL — MANDATORY 2-PASS REVIEW ===
 
-PER-TASK LLM (assign different LLMs per task — critical):
-Claude: writing proposals/emails/reports/JDs/policies/legal briefs/investor memos, reading annual reports/contracts/resumes, complex coding, RAG/MCP agents, risk assessment, brand voice
-Gemini: real-time company research, competitor intel, regulatory alerts, salary benchmarking, scientific literature, video analysis (ONLY option), travel logistics, pricing intel
-GPT: Excel/spreadsheet analysis, financial modelling, campaign data analysis, image generation, PowerPoint (MS365), browser automation, CRM CSV analysis, rapid prototyping
+Before producing your final JSON output, you MUST silently complete two internal review passes. Do not output the passes themselves — only the final corrected JSON.
 
-USER-TYPE CONTEXT (from intake):
+PASS 1 — DRAFT & STRESS-TEST:
+Draft the full blueprint internally. Then challenge every decision:
+- LLM assignments: Have you applied the Three Golden Rules strictly per task? Did you default to one LLM for everything (wrong) instead of assigning the best model per task?
+- Platform: Is the recommendation truly budget-first? Would a non-technical user realistically use n8n self-hosted?
+- Cost: Did you cross-reference the exact token pricing from the VERIFIED RATES table below? Did you check the cliff thresholds?
+- Tool gap: Did you actually cross-reference what tools the user said they HAVE vs what the flow REQUIRES?
+- ROI: Is the "worthIt" verdict honest, or did you default to true? Would a simpler Claude Skill/Gemini Gem achieve 80% of this at 10% of the cost?
+- detailedSteps: Does every step have a realistic promptTemplate? Did you leave any field empty?
+
+PASS 2 — SELF-CORRECTION:
+Fix every error identified in Pass 1. Verify:
+[ ] Every task has a DIFFERENT LLM assignment justified by the Three Golden Rules (not one-size-fits-all)
+[ ] Platform choice matches the user's technical level and budget from their intake
+[ ] cliffWarning is set when payload is "Very large" AND model is GPT-5.4 or Gemini 3.1 Pro
+[ ] toolsGap is populated if ANY required tool was not in the user's stated tool list
+[ ] All cost figures use the VERIFIED RATES below — not approximations
+[ ] billingNote is plain English, no jargon, explains the two separate bills clearly
+[ ] roiAssessment.alternatives contains at least 2 genuinely cheaper options
+[ ] Every detailedStep.promptTemplate is non-empty and specific to the task
+
+Only after completing both passes silently, output the final corrected JSON.
+
+=== VERIFIED APRIL 2026 PRICING RATES (use EXACTLY these figures) ===
+Claude Opus 4.6:      $5.00/1M input,  $25.00/1M output  — NO cliff
+Claude Sonnet 4.6:    $3.00/1M input,  $15.00/1M output  — NO cliff
+GPT-5.4:              $2.50/1M input,  $15.00/1M output  — 2× above 272K tokens
+GPT-5.4 Mini:         $0.75/1M input,  $4.50/1M output   — NO cliff
+GPT-5.4 Nano:         $0.20/1M input,  $1.25/1M output   — NO cliff
+Gemini 3.1 Pro:       $2.00/1M input,  $12.00/1M output  — 2× above 200K tokens
+Gemini 2.5 Flash:     $0.15/1M input,  $0.60/1M output   — NO cliff
+Gemini 3.1 Flash-Lite:$0.25/1M input,  $1.50/1M output   — NO cliff
+Exchange rate: 1 USD = ₹84 (all costs must be in ₹)
+
+=== THREE GOLDEN RULES (per-task, not per-blueprint) ===
+RULE 1 — WRITING: proposals, reports, emails, SOPs, legal, compliance, JDs, content, board decks, cold outreach, investor memos → Claude Opus/Sonnet 4.6. Reason: highest Elo (1633 GDPval), lowest hallucination rate.
+RULE 2 — REAL-TIME INFO: competitor research, market signals, regulatory alerts, live pricing, news, salary benchmarks, travel, anything requiring today's data → Gemini 3.1 Pro. Reason: native Google Search grounding is a structural advantage no other model has.
+RULE 3 — DATA/IMAGES/SPEED: Excel analysis, financial modelling, image generation, PowerPoint/MS365, browser automation, CRM CSV, campaign data, rapid prototyping → GPT-5.4. Reason: Advanced Data Analysis, DALL-E, fastest time-to-first-token.
+
+PER-TASK LLM MAPPING:
+Claude  → proposals, emails, reports, JDs, policies, legal briefs, investor memos, annual reports, contracts, resumes, complex coding, RAG/MCP agents, risk assessment, brand voice
+Gemini  → real-time company research, competitor intel, regulatory alerts, salary benchmarking, scientific literature, video analysis (ONLY model with this), travel logistics, pricing intel
+GPT     → Excel/spreadsheets, financial modelling, campaign data, image generation, PowerPoint (MS365), browser automation, CRM CSV analysis, rapid prototyping
+
+USER-TYPE → PRIMARY LLM DEFAULTS (override per task using Rules above):
 Engineering Student → Claude (coding/docs), Gemini (research)
-Commerce Student → Claude (case studies), GPT (Excel)
-Science Student → Gemini (lit review), Claude (thesis)
-Sales Pro → Claude (proposals), Gemini (prospect research)
-Marketing Pro → Claude (content), GPT (campaign data/images)
-Operations → Claude (reports/SOPs), GPT (Excel)
-HR → Claude (JDs/policies), Gemini (salary benchmarks)
-Finance → GPT (modelling), Claude (long docs)
-CEO/Founder → Claude (writing/automation), Gemini (market intel)
-CTO/CIO → Claude (architecture/MCP), GPT (computer use)
-CFO → Claude (compliance docs), GPT (financial modelling)
-Startup → Claude (build/write), Gemini (research), GPT (models)
-Builder/Tinkerer → Claude (agents/coding), GPT (speed)
+Commerce Student    → Claude (case studies), GPT (Excel)
+Science Student     → Gemini (lit review), Claude (thesis)
+Sales Pro           → Claude (proposals), Gemini (prospect research)
+Marketing Pro       → Claude (content), GPT (campaign data/images)
+Operations          → Claude (reports/SOPs), GPT (Excel)
+HR                  → Claude (JDs/policies), Gemini (salary benchmarks)
+Finance             → GPT (modelling), Claude (long docs)
+CEO/Founder         → Claude (writing/automation), Gemini (market intel)
+CTO/CIO             → Claude (architecture/MCP), GPT (computer use)
+CFO                 → Claude (compliance docs), GPT (financial modelling)
+Startup             → Claude (build/write), Gemini (research), GPT (models)
+Builder/Tinkerer    → Claude (agents/coding), GPT (speed)
 
-EXECUTION: One-time → Direct LLM Usage. Monthly repeatable → LLM Skill/Prompt Template. Weekly/daily → Scheduled Automation. Autonomous/5+tasks multi-system → Full Autonomous Agent. Personal → simpler/cheaper. Production → robust/reliable.
+EXECUTION TYPE LOGIC:
+One-time task       → Direct LLM Usage       (personal=simpler, no platform needed)
+Monthly repeatable  → LLM Skill/Prompt Template
+Weekly/daily        → Scheduled Automation
+5+ tasks, multi-system, autonomous → Full Autonomous Agent (production=robust)
 
-PLATFORM (budget-first): Non-technical+no budget → Make.com or Relevance AI (NOT n8n Cloud). Technical → n8n self-hosted. AI agent → Relevance AI. Voice/chatbot → Voiceflow. LLM/RAG → Langflow. Enterprise GCP → Vertex AI. One-time → None.
+PLATFORM SELECTION (budget-first — this order matters):
+Non-technical + no budget → Make.com or Relevance AI (NEVER recommend n8n Cloud to non-technical users)
+Technical user            → n8n self-hosted (free, unlimited)
+AI agent focus            → Relevance AI
+Voice/chatbot             → Voiceflow
+LLM/RAG pipeline          → Langflow
+Enterprise GCP            → Vertex AI Agent Builder
+One-time task             → None (Direct LLM)
 
-TOOL GAP: Extract tools user HAS and CANNOT connect. Cross-reference with tools required. Flag toolsGap (mandatory+missing) and toolsPrivacyConflict (has but blocked — suggest workaround).
+TOOL GAP ANALYSIS (mandatory):
+1. Extract the exact list of tools the user said they HAVE (from clarifying answers)
+2. Extract the exact list of tools the user said they CANNOT connect (privacy-blocked)
+3. Cross-reference against every tool your flow REQUIRES
+4. Populate toolsGap for each required tool NOT in the user's list
+5. Populate toolsPrivacyConflict for each tool the user HAS but said is blocked
+6. If no gaps exist, leave arrays empty (do not fabricate gaps)
 
-COST: INR. Platform+LLM API separate. CLIFF: Very large payload+GPT-5.4(>272K) or Gemini 3.1 Pro(>200K) → flag, recommend Claude (cliff-safe). Two bills except Vertex AI (single GCP).
+ROI HONESTY RULE: Compare this full agentic flow against: (a) a Claude Skill/Project, (b) a Gemini Gem, (c) a Custom GPT, (d) a simple scheduler. If any simpler alternative achieves >70% of the value at <30% of the cost, set worthIt=false and explain clearly.
 
-ROI: Honest. Compare vs Claude Skills/Gemini Gems/Custom GPT/schedulers. Let user decide.
-
-Return ONLY valid JSON:
-{"title":"max 8 words","executionApproach":"Direct LLM Usage|LLM Skill / Prompt Template|Scheduled Automation|Full Autonomous Agent","executionRationale":"one sentence","tasks":[{"number":1,"name":"","type":"Trigger|Data Fetch|Research|Analysis|Content Generation|Decision|Data Transform|Output","llm":"model or None","llmReason":"one phrase why","platform":"","description":""}],"visualFlow":"[Task|LLM|Tool]→[Task|LLM|Tool]","llmDistribution":[{"llm":"Claude Sonnet 4.6","taskCount":1,"taskNames":[""]}],"platformRecommendation":"platform name","platformRationale":"why (budget reasoning)","llmRationale":"overall LLM strategy","freemiumVerdict":"Freemium sufficient|Freemium to start upgrade likely|Paid required","primaryLLM":"model name","billingNote":"plain English","cliffWarning":null,"toolAnalysis":{"toolsRequired":[],"toolsUserHas":[],"toolsBlocked":[],"toolsGap":[{"tool":"","reason":"","workaround":""}],"toolsPrivacyConflict":[{"tool":"","issue":"","workaround":""}]},"roiAssessment":{"worthIt":true,"summary":"","alternatives":[{"name":"","description":"","cost":"","bestFor":""}]},"detailedSteps":[{"taskNumber":1,"taskName":"","description":"","platform":"","llm":"","promptTemplate":"","input":"","output":"","connection":"","setupTime":""}]}`;
+Return ONLY the final corrected JSON after your silent 2-pass review:
+{"title":"max 8 words","executionApproach":"Direct LLM Usage|LLM Skill / Prompt Template|Scheduled Automation|Full Autonomous Agent","executionRationale":"one sentence","tasks":[{"number":1,"name":"","type":"Trigger|Data Fetch|Research|Analysis|Content Generation|Decision|Data Transform|Output","llm":"model or None","llmReason":"one phrase why — must cite which Golden Rule","platform":"","description":""}],"visualFlow":"[Task|LLM|Tool]→[Task|LLM|Tool]","llmDistribution":[{"llm":"Claude Sonnet 4.6","taskCount":1,"taskNames":[""]}],"platformRecommendation":"platform name","platformRationale":"why (budget reasoning)","llmRationale":"overall LLM strategy","freemiumVerdict":"Freemium sufficient|Freemium to start upgrade likely|Paid required","primaryLLM":"model name","billingNote":"plain English — explain two separate bills","cliffWarning":null,"toolAnalysis":{"toolsRequired":[],"toolsUserHas":[],"toolsBlocked":[],"toolsGap":[{"tool":"","reason":"","workaround":""}],"toolsPrivacyConflict":[{"tool":"","issue":"","workaround":""}]},"roiAssessment":{"worthIt":true,"summary":"","alternatives":[{"name":"","description":"","cost":"","bestFor":""}]},"detailedSteps":[{"taskNumber":1,"taskName":"","description":"","platform":"","llm":"","promptTemplate":"specific non-empty prompt for this exact task","input":"","output":"","connection":"","setupTime":""}]}`;
 
 function extractJSON(raw) {
   if (!raw || typeof raw !== "string") throw new Error("Empty response from AI");
@@ -302,6 +354,9 @@ let state = {
   error: "",
   refinement: "",
   saveFlash: false,
+  shareId: null,       // UUID of a saved permalink
+  shareFlash: false,   // "Link copied!" toast
+  isReadOnly: false,   // true when viewing a shared permalink
 };
 
 function setState(updates) {
@@ -354,6 +409,37 @@ async function handleGenerate(isRefine) {
   } catch (e) { setState({ error: "Error: " + e.message, loadStage: null }); }
 }
 
+async function shareBlueprint() {
+  if (!state.result) return;
+  // If already shared, just copy the existing URL
+  if (state.shareId) {
+    const url = `${location.origin}/?id=${state.shareId}`;
+    navigator.clipboard.writeText(url).then(() => {
+      setState({ shareFlash: true });
+      setTimeout(() => setState({ shareFlash: false }), 2500);
+    });
+    return;
+  }
+  setState({ loadStage: "share" });
+  try {
+    const r = await fetch("/api/save", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ result: state.result, intake: state.intake }),
+    });
+    if (!r.ok) throw new Error(`Save failed: ${r.status}`);
+    const { id } = await r.json();
+    const url = `${location.origin}/?id=${id}`;
+    await navigator.clipboard.writeText(url).catch(() => {});
+    setState({ shareId: id, shareFlash: true, loadStage: null });
+    // Update browser URL bar without a page reload
+    history.replaceState(null, "", `/?id=${id}`);
+    setTimeout(() => setState({ shareFlash: false }), 2500);
+  } catch (e) {
+    setState({ error: "Share failed: " + e.message, loadStage: null });
+  }
+}
+
 function manualSave() {
   saveState(state);
   setState({ saveFlash: true });
@@ -364,7 +450,7 @@ function startFresh() {
   clearState();
   setState({
     screen:"intake", intake:{userType:"",field:"",orgType:"",dept:"",company:"",role:"",useCase:"",usageIntent:"",execPref:""},
-    questions:[], answers:{}, result:null, showDetails:false, resultTab:"summary", refinement:"", error:"", loadStage:null, saveFlash:false
+    questions:[], answers:{}, result:null, showDetails:false, resultTab:"summary", refinement:"", error:"", loadStage:null, saveFlash:false, shareId:null, shareFlash:false, isReadOnly:false
   });
 }
 
@@ -387,11 +473,14 @@ function renderHeader() {
       <span style="font-size:12px;color:var(--txt3);font-weight:400;letter-spacing:0" class="hide-sm">AI Workflow Designer</span>
     </div>
     <div style="display:flex;align-items:center;gap:8px">
-      ${state.result ? `<div style="position:relative">
+      ${state.result && !state.isReadOnly ? `
         <button class="btn-s" style="font-size:12px;padding:7px 12px" onclick="manualSave()">
           ${state.saveFlash ? "✓ Saved" : "Save"}
         </button>
-      </div>` : ""}
+        <button class="btn-s" style="font-size:12px;padding:7px 12px;color:${state.shareFlash?'var(--ok-tx)':'var(--pr-tx)'};border-color:${state.shareFlash?'var(--ok)':'var(--pr)'};" onclick="shareBlueprint()">
+          ${state.shareFlash ? "✓ Link copied!" : state.shareId ? "🔗 Copy link" : "🔗 Share"}
+        </button>` : ""}
+      ${state.isReadOnly ? `<span class="pill" style="background:var(--pr-bg);color:var(--pr-tx);font-size:11px;padding:5px 10px">👁 Read-only view</span>` : ""}
       <button class="btn-s" style="font-size:12px;padding:7px 12px" onclick="toggleTheme()">
         ${isDark ? "☀ Light" : "◑ Dark"}
       </button>
@@ -825,7 +914,7 @@ function renderResult() {
     : tabGuideContent;
 
   // ── Always-visible refinement box ────────────────────────────────────────
-  const refinementBox = `<div class="card no-print" style="border:1px solid var(--bdr2)" id="refinement-section">
+  const refinementBox = state.isReadOnly ? "" : `<div class="card no-print" style="border:1px solid var(--bdr2)" id="refinement-section">
     <span class="lbl" style="color:var(--pr-tx)">🔁 Refine your blueprint</span>
     <p style="font-size:13px;color:var(--txt2);margin-bottom:10px;line-height:1.45">Add new context, correct something, or change your requirements — the entire blueprint will be regenerated.</p>
     <textarea class="inp" rows="3" style="resize:vertical;margin-bottom:10px" placeholder="e.g. I forgot to mention I use HubSpot as my CRM. Also, my company won't allow connecting Slack to external AI tools." id="refineArea">${state.refinement||""}</textarea>
@@ -833,10 +922,10 @@ function renderResult() {
       <button class="btn-p" id="refineBtn" onclick="doRefine()" ${!state.refinement?.trim() ? "disabled" : ""} style="flex:1">Re-analyse with update →</button>
       <button class="btn-s" onclick="startFresh()">↺ Start over</button>
     </div>
-  </div>`;
+  </div>\` : "";
 
   // ── FAB ──────────────────────────────────────────────────────────────────
-  const fab = `<button class="fab no-print" id="refine-fab" onclick="scrollToRefine()" title="Refine your blueprint">
+  const fab = state.isReadOnly ? "" : `<button class="fab no-print" id="refine-fab" onclick="scrollToRefine()" title="Refine your blueprint">
     🔁 <span>Refine</span>
   </button>`;
 
@@ -863,7 +952,13 @@ function render() {
   if (window._tipInterval) { clearInterval(window._tipInterval); window._tipInterval = null; }
 
   if (state.loadStage) {
-    app.innerHTML = renderHeader() + `<div style="max-width:680px;margin:0 auto;padding:20px">${renderLoading(state.loadStage)}</div>` + renderFooter();
+    const loadingContent = state.loadStage === "share"
+      ? `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;gap:16px;text-align:center">
+           <div class="spin-el"></div>
+           <p style="font-size:15px;font-weight:500;color:var(--txt)">${state.isReadOnly ? "Loading shared blueprint…" : "Saving your blueprint…"}</p>
+         </div>`
+      : renderLoading(state.loadStage);
+    app.innerHTML = renderHeader() + `<div style="max-width:680px;margin:0 auto;padding:20px">${loadingContent}</div>` + renderFooter();
     // Start rotating tips only during the longer generate stage
     if (state.loadStage === "generate") {
       let tipIdx = TIPS.findIndex(t => document.getElementById("loading-tip")?.textContent === t);
@@ -971,6 +1066,7 @@ window.resumeSession = () => {
   if (s) setState({ ...s, loadStage: null, error: "", saveFlash: false });
 };
 window.dismissSaved = () => { clearState(); render(); };
+window.shareBlueprint = shareBlueprint;
 window.scrollToRefine = () => {
   const section = document.getElementById("refinement-section");
   const area = document.getElementById("refineArea");
@@ -978,7 +1074,40 @@ window.scrollToRefine = () => {
   if (area) setTimeout(() => area.focus(), 300);
 };
 
-render();
+// ── Permalink boot-loader ─────────────────────────────────────────────────
+// Runs once on page load. If ?id=xyz is in the URL, fetch and display that
+// shared blueprint as a read-only view. Otherwise normal boot.
+(async function bootRouter() {
+  const params = new URLSearchParams(location.search);
+  const id = params.get("id");
+
+  if (id && /^[0-9a-f-]+$/i.test(id) && id.length <= 36) {
+    // Show loading immediately
+    state.loadStage = "share";
+    render();
+    try {
+      const r = await fetch(`/api/load?id=${encodeURIComponent(id)}`);
+      if (!r.ok) throw new Error(r.status === 404 ? "Blueprint not found or expired." : `Load error ${r.status}`);
+      const payload = await r.json();
+      state = {
+        ...state,
+        screen: "result",
+        result: payload.result,
+        shareId: id,
+        isReadOnly: true,
+        loadStage: null,
+        resultTab: "summary",
+      };
+      render();
+    } catch (e) {
+      state.loadStage = null;
+      state.error = e.message;
+      render();
+    }
+  } else {
+    render();
+  }
+})();
 </script>
 </body>
 </html>
