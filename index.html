@@ -99,6 +99,14 @@
     .pbar{height:3px;background:var(--pr);border-radius:2px;animation:prog var(--dur,20s) ease forwards}
     @media(max-width:720px){.two-col{grid-template-columns:1fr !important}.three-col{grid-template-columns:1fr !important}.hide-sm{display:none !important}}
     @media print{.no-print{display:none !important}body{background:#fff;color:#000}.card{box-shadow:none;border:1px solid #ddd}}
+    .tab-bar{display:flex;gap:4px;background:var(--bg2);border:1px solid var(--bdr);border-radius:var(--rl);padding:4px;margin-bottom:16px}
+    .tab-btn{flex:1;padding:9px 12px;border:none;background:transparent;border-radius:var(--r);font-size:13px;font-weight:500;color:var(--txt2);cursor:pointer;font-family:inherit;transition:all .15s;white-space:nowrap;text-align:center}
+    .tab-btn:hover{color:var(--txt);background:var(--bg3)}
+    .tab-btn.active{background:var(--surf);color:var(--pr-tx);box-shadow:var(--sh);font-weight:600}
+    .fab{position:fixed;bottom:28px;right:24px;z-index:200;background:var(--pr);color:#fff;border:none;border-radius:50px;padding:12px 20px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;box-shadow:0 4px 16px rgba(66,133,244,.4);display:flex;align-items:center;gap:8px;transition:transform .15s,box-shadow .15s}
+    .fab:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(66,133,244,.5)}
+    @keyframes tipFade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+    .tip-text{animation:tipFade .4s ease forwards}
   </style>
 </head>
 <body>
@@ -160,6 +168,19 @@ const AICONS = {
   "Scheduled Automation": "🔄",
   "Full Autonomous Agent": "🤖"
 };
+
+const TIPS = [
+  "💡 Assign different LLMs per task — Claude for writing, Gemini for research, GPT for data.",
+  "💡 Start with freemium platforms like Make.com before committing to paid plans.",
+  "💡 A Full Autonomous Agent costs ~3× more than a scheduled workflow — choose wisely.",
+  "💡 Claude has no long-context price cliff. GPT-5.4 doubles in cost above 272K tokens.",
+  "💡 Most automations run fine on 100 runs/month — that is 3–4 executions per day.",
+  "💡 Privacy-blocked tools don't have to stop your workflow — local models can fill the gap.",
+  "💡 ROI compounds: a 30-minute daily task automated saves ~130 hours every year.",
+  "💡 Gemini has native Google Search grounding — unmatched for real-time market research.",
+  "💡 Structured JSON output from LLMs is far more reliable than free-text parsing.",
+  "💡 A good system prompt is worth 10× a better model for repeatable business tasks.",
+];
 
 const inr = (usd) => "₹" + Math.round(usd * USD).toLocaleString("en-IN");
 
@@ -273,6 +294,7 @@ let state = {
   answers: {},
   result: null,
   showDetails: false,
+  resultTab: "summary",
   loadStage: null,
   error: "",
   refinement: "",
@@ -325,7 +347,7 @@ async function handleGenerate(isRefine) {
     if (isRefine && state.refinement?.trim()) payload.refinementNote = state.refinement;
     if (isRefine && state.result) payload.previousAnalysis = { title: state.result.title };
     const data = await callAPI(SYSPROMPT, JSON.stringify(payload));
-    setState({ result: data, screen: "result", loadStage: null, refinement: "" });
+    setState({ result: data, screen: "result", loadStage: null, refinement: "", resultTab: "summary" });
   } catch (e) { setState({ error: "Error: " + e.message, loadStage: null }); }
 }
 
@@ -339,7 +361,7 @@ function startFresh() {
   clearState();
   setState({
     screen:"intake", intake:{userType:"",field:"",orgType:"",dept:"",company:"",role:"",useCase:"",usageIntent:"",execPref:""},
-    questions:[], answers:{}, result:null, showDetails:false, refinement:"", error:"", loadStage:null, saveFlash:false
+    questions:[], answers:{}, result:null, showDetails:false, resultTab:"summary", refinement:"", error:"", loadStage:null, saveFlash:false
   });
 }
 
@@ -387,6 +409,7 @@ function renderLoading(stage) {
   const steps = stage === "clarify"
     ? ["Reading your use case", "Identifying requirements", "Preparing questions"]
     : ["Analysing your answers", "Decomposing into tasks", "Selecting optimal tools", "Checking tool availability", "Calculating costs in ₹", "Assembling your blueprint"];
+  const firstTip = TIPS[Math.floor(Math.random() * TIPS.length)];
   return `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;padding:40px 20px;text-align:center">
     <div class="spin-el" style="margin-bottom:20px"></div>
     <p style="font-size:16px;font-weight:500;color:var(--txt);margin-bottom:6px">${msg}</p>
@@ -394,11 +417,15 @@ function renderLoading(stage) {
     <div style="width:280px;height:4px;background:var(--bg3);border-radius:2px;overflow:hidden;margin-bottom:24px">
       <div class="pbar" style="--dur:${dur}"></div>
     </div>
-    <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-start">
+    <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-start;margin-bottom:28px">
       ${steps.map((s, i) => `<div style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--txt3)">
         <div style="width:16px;height:16px;border-radius:50%;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600;color:var(--txt3)">${i+1}</div>
         ${s}
       </div>`).join("")}
+    </div>
+    <div style="max-width:360px;background:var(--bg2);border:1px solid var(--bdr);border-radius:var(--rl);padding:14px 18px;text-align:left">
+      <p style="margin:0 0 6px;font-size:10px;font-weight:600;color:var(--txt3);text-transform:uppercase;letter-spacing:.07em">While you wait</p>
+      <p id="loading-tip" class="tip-text" style="margin:0;font-size:13px;color:var(--txt2);line-height:1.6">${firstTip}</p>
     </div>
   </div>`;
 }
@@ -554,7 +581,9 @@ function renderResult() {
   const llmInfo = LLMDATA[r.primaryLLM];
   const vInfo = VDICT[r.freemiumVerdict] || VDICT["Freemium to start upgrade likely"];
   const aIcon = AICONS[r.executionApproach] || "⚙";
+  const tab = state.resultTab || "summary";
 
+  // ── Always-visible hero ──────────────────────────────────────────────────
   const executiveSummary = `
     <div style="background:var(--pr-bg);border:1px solid var(--bdr);border-radius:var(--rl);padding:20px;margin-bottom:14px;box-shadow:var(--sh)">
       <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:14px">
@@ -582,29 +611,7 @@ function renderResult() {
     <div><p style="margin:0 0 2px;font-size:13px;font-weight:600;color:var(--er-tx)">Cost notice — long-context pricing</p><p style="margin:0;font-size:12px;color:var(--txt2);line-height:1.5">${r.cliffWarning}</p></div>
   </div>` : "";
 
-  const flowHtml = `<div class="card">
-    <span class="lbl">Workflow overview</span>
-    <div style="display:flex;flex-wrap:wrap;gap:7px;align-items:center;margin-bottom:10px">
-      ${r.tasks?.map((t, i) => `
-        <div style="background:var(--bg2);border:1px solid var(--bdr);border-radius:var(--r);padding:9px 12px;text-align:center;min-width:88px;flex-shrink:0">
-          <div style="width:6px;height:6px;border-radius:50%;background:${TCOL[t.type]||"var(--pr)"};margin:0 auto 5px"></div>
-          <div style="font-size:11px;font-weight:600;color:var(--txt);margin-bottom:2px">${t.name}</div>
-          ${t.llm && t.llm !== "None" ? `<div style="font-size:9px;font-weight:500;color:${t.llm?.includes("Claude")?"var(--ok)":t.llm?.includes("Gemini")?"var(--wn)":"var(--pr)"}">${t.llm.split(" ").slice(0,2).join(" ")}</div>` : ""}
-          <div style="font-size:9px;color:var(--txt3)">${t.platform||""}</div>
-        </div>
-        ${i < r.tasks.length - 1 ? `<span style="color:var(--bdr2);font-size:14px;flex-shrink:0">→</span>` : ""}
-      `).join("")}
-    </div>
-    ${r.llmDistribution?.length > 0 ? `<div style="display:flex;gap:7px;flex-wrap:wrap;padding-top:10px;border-top:1px solid var(--bdr);align-items:center">
-      <span style="font-size:11px;color:var(--txt3);font-weight:500">AI engines used:</span>
-      ${r.llmDistribution.map(d => {
-        const c = d.llm?.includes("Claude")?"var(--ok)":d.llm?.includes("Gemini")?"var(--wn)":"var(--pr)";
-        const bg = d.llm?.includes("Claude")?"var(--ok-bg)":d.llm?.includes("Gemini")?"var(--wn-bg)":"var(--pr-bg)";
-        return `<span class="pill" style="background:${bg};color:${c};border:1px solid ${c}40">${d.llm} · ${d.taskCount} step${d.taskCount>1?"s":""}</span>`;
-      }).join("")}
-    </div>` : ""}
-  </div>`;
-
+  // ── Tab 1: Executive Summary & ROI ───────────────────────────────────────
   const threeGrid = `<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:12px" class="three-col">
     <div class="card" style="margin-bottom:0">
       <span class="lbl">Platform</span>
@@ -643,6 +650,59 @@ function renderResult() {
   const billingNote = `<div style="background:var(--pr-bg);border:1px solid var(--bdr);border-radius:var(--r);padding:10px 14px;margin-bottom:12px;display:flex;gap:8px">
     <span style="font-size:14px;flex-shrink:0">ℹ</span>
     <p style="margin:0;font-size:12px;color:var(--txt2);line-height:1.5">${r.billingNote}</p>
+  </div>`;
+
+  const roiSection = (() => {
+    if (!r.roiAssessment) return "";
+    const alts = (r.roiAssessment.alternatives||[]).map(a => `<div style="background:var(--bg2);border:1px solid var(--bdr);border-radius:var(--r);padding:12px 14px">
+      <p style="margin:0 0 4px;font-size:13px;font-weight:600;color:var(--txt)">${a.name}</p>
+      <p style="margin:0 0 6px;font-size:12px;color:var(--txt2);line-height:1.4">${a.description}</p>
+      <div style="display:flex;gap:5px;flex-wrap:wrap">
+        <span class="pill" style="background:var(--ok-bg);color:var(--ok-tx);font-size:11px">💰 ${a.cost}</span>
+        <span class="pill" style="background:var(--bg3);color:var(--txt2);font-size:11px">Best for: ${a.bestFor}</span>
+      </div>
+    </div>`).join("");
+    return `<div class="card">
+      <div style="display:flex;align-items:center;gap:9px;margin-bottom:12px">
+        <span style="font-size:18px">${r.roiAssessment.worthIt?"✅":"🤔"}</span>
+        <div>
+          <span class="lbl" style="margin-bottom:1px">Is it worth it?</span>
+          <p style="font-size:13px;font-weight:500;color:${r.roiAssessment.worthIt?"var(--ok-tx)":"var(--wn-tx)"};margin:0">${r.roiAssessment.worthIt?"Worth the investment":"Consider simpler alternatives first"}</p>
+        </div>
+      </div>
+      <p style="font-size:13px;color:var(--txt2);line-height:1.55;margin-bottom:${alts?"14px":"0"}">${r.roiAssessment.summary}</p>
+      ${alts?`<span class="lbl">Simpler alternatives — you decide what works</span><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px" class="two-col">${alts}</div>`:""}
+    </div>`;
+  })();
+
+  const disclaimer = `<div style="background:var(--bg2);border:1px solid var(--bdr);border-radius:var(--r);padding:9px 13px;margin-bottom:16px">
+    <p style="margin:0;font-size:11px;color:var(--txt3);line-height:1.5">⚠ Cost estimates are approximate. Platform pricing verified April 2026 — verify at: make.com · n8n.io · zapier.com · relevanceai.com · anthropic.com · openai.com · ai.google.dev · USD/INR at ₹84 (verify current rate)</p>
+  </div>`;
+
+  const tabSummaryContent = `<div class="fu">${threeGrid}${billingNote}${roiSection}${disclaimer}</div>`;
+
+  // ── Tab 2: Workflow Architecture ─────────────────────────────────────────
+  const flowHtml = `<div class="card">
+    <span class="lbl">Workflow overview</span>
+    <div style="display:flex;flex-wrap:wrap;gap:7px;align-items:center;margin-bottom:10px">
+      ${r.tasks?.map((t, i) => `
+        <div style="background:var(--bg2);border:1px solid var(--bdr);border-radius:var(--r);padding:9px 12px;text-align:center;min-width:88px;flex-shrink:0">
+          <div style="width:6px;height:6px;border-radius:50%;background:${TCOL[t.type]||"var(--pr)"};margin:0 auto 5px"></div>
+          <div style="font-size:11px;font-weight:600;color:var(--txt);margin-bottom:2px">${t.name}</div>
+          ${t.llm && t.llm !== "None" ? `<div style="font-size:9px;font-weight:500;color:${t.llm?.includes("Claude")?"var(--ok)":t.llm?.includes("Gemini")?"var(--wn)":"var(--pr)"}">${t.llm.split(" ").slice(0,2).join(" ")}</div>` : ""}
+          <div style="font-size:9px;color:var(--txt3)">${t.platform||""}</div>
+        </div>
+        ${i < r.tasks.length - 1 ? `<span style="color:var(--bdr2);font-size:14px;flex-shrink:0">→</span>` : ""}
+      `).join("")}
+    </div>
+    ${r.llmDistribution?.length > 0 ? `<div style="display:flex;gap:7px;flex-wrap:wrap;padding-top:10px;border-top:1px solid var(--bdr);align-items:center">
+      <span style="font-size:11px;color:var(--txt3);font-weight:500">AI engines used:</span>
+      ${r.llmDistribution.map(d => {
+        const c = d.llm?.includes("Claude")?"var(--ok)":d.llm?.includes("Gemini")?"var(--wn)":"var(--pr)";
+        const bg = d.llm?.includes("Claude")?"var(--ok-bg)":d.llm?.includes("Gemini")?"var(--wn-bg)":"var(--pr-bg)";
+        return `<span class="pill" style="background:${bg};color:${c};border:1px solid ${c}40">${d.llm} · ${d.taskCount} step${d.taskCount>1?"s":""}</span>`;
+      }).join("")}
+    </div>` : ""}
   </div>`;
 
   const taskBreakdown = `<div class="card">
@@ -697,32 +757,11 @@ function renderResult() {
     </div>`;
   })();
 
-  const roiSection = (() => {
-    if (!r.roiAssessment) return "";
-    const alts = (r.roiAssessment.alternatives||[]).map(a => `<div style="background:var(--bg2);border:1px solid var(--bdr);border-radius:var(--r);padding:12px 14px">
-      <p style="margin:0 0 4px;font-size:13px;font-weight:600;color:var(--txt)">${a.name}</p>
-      <p style="margin:0 0 6px;font-size:12px;color:var(--txt2);line-height:1.4">${a.description}</p>
-      <div style="display:flex;gap:5px;flex-wrap:wrap">
-        <span class="pill" style="background:var(--ok-bg);color:var(--ok-tx);font-size:11px">💰 ${a.cost}</span>
-        <span class="pill" style="background:var(--bg3);color:var(--txt2);font-size:11px">Best for: ${a.bestFor}</span>
-      </div>
-    </div>`).join("");
-    return `<div class="card">
-      <div style="display:flex;align-items:center;gap:9px;margin-bottom:12px">
-        <span style="font-size:18px">${r.roiAssessment.worthIt?"✅":"🤔"}</span>
-        <div>
-          <span class="lbl" style="margin-bottom:1px">Is it worth it?</span>
-          <p style="font-size:13px;font-weight:500;color:${r.roiAssessment.worthIt?"var(--ok-tx)":"var(--wn-tx)"};margin:0">${r.roiAssessment.worthIt?"Worth the investment":"Consider simpler alternatives first"}</p>
-        </div>
-      </div>
-      <p style="font-size:13px;color:var(--txt2);line-height:1.55;margin-bottom:${alts?"14px":"0"}">${r.roiAssessment.summary}</p>
-      ${alts?`<span class="lbl">Simpler alternatives — you decide what works</span><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px" class="two-col">${alts}</div>`:""}
-    </div>`;
-  })();
+  const tabArchitectureContent = `<div class="fu">${flowHtml}${taskBreakdown}${toolAnalysis}</div>`;
 
-  const stepsHtml = state.showDetails && r.detailedSteps?.length > 0 ? `<div class="fu">
-    <h3 style="font-size:16px;font-weight:600;color:var(--txt);margin-bottom:4px">Step-by-step build guide</h3>
-    <p style="font-size:13px;color:var(--txt2);margin-bottom:14px">Written for beginners. No prior experience needed.</p>
+  // ── Tab 3: Step-by-Step Guide ────────────────────────────────────────────
+  const stepsContent = r.detailedSteps?.length > 0 ? `<div class="fu">
+    <p style="font-size:13px;color:var(--txt2);margin-bottom:14px;line-height:1.5">Written for beginners. No prior experience needed.</p>
     ${r.detailedSteps.map(step => `
       <div class="step-card">
         <div style="display:flex;align-items:center;gap:9px;margin-bottom:10px">
@@ -747,13 +786,23 @@ function renderResult() {
         </div>
         ${step.connection?`<p style="margin:8px 0 0;font-size:11px;color:var(--txt3)">→ ${step.connection}</p>`:""}
       </div>`).join("")}
-  </div>` : "";
+  </div>` : `<div class="card"><p style="font-size:13px;color:var(--txt2)">Step-by-step guide not available for this blueprint.</p></div>`;
 
-  const disclaimer = `<div style="background:var(--bg2);border:1px solid var(--bdr);border-radius:var(--r);padding:9px 13px;margin-bottom:16px">
-    <p style="margin:0;font-size:11px;color:var(--txt3);line-height:1.5">⚠ Cost estimates are approximate. Platform pricing verified April 2026 — verify at: make.com · n8n.io · zapier.com · relevanceai.com · anthropic.com · openai.com · ai.google.dev · USD/INR at ₹84 (verify current rate)</p>
+  const tabGuideContent = `<div class="fu">${stepsContent}${disclaimer}</div>`;
+
+  // ── Tab bar ──────────────────────────────────────────────────────────────
+  const tabBar = `<div class="tab-bar no-print" role="tablist">
+    <button class="tab-btn ${tab==="summary"?"active":""}" role="tab" aria-selected="${tab==="summary"}" data-tab="summary" onclick="setState({resultTab:'summary'})">📊 Summary & ROI</button>
+    <button class="tab-btn ${tab==="architecture"?"active":""}" role="tab" aria-selected="${tab==="architecture"}" data-tab="architecture" onclick="setState({resultTab:'architecture'})">⚙ Workflow Architecture</button>
+    <button class="tab-btn ${tab==="guide"?"active":""}" role="tab" aria-selected="${tab==="guide"}" data-tab="guide" onclick="setState({resultTab:'guide'})">📋 Step-by-Step Guide</button>
   </div>`;
 
-  const refinementBox = `<div class="card no-print" style="border:1px solid var(--bdr2)">
+  const tabContent = tab === "summary" ? tabSummaryContent
+    : tab === "architecture" ? tabArchitectureContent
+    : tabGuideContent;
+
+  // ── Always-visible refinement box ────────────────────────────────────────
+  const refinementBox = `<div class="card no-print" style="border:1px solid var(--bdr2)" id="refinement-section">
     <span class="lbl" style="color:var(--pr-tx)">🔁 Refine your blueprint</span>
     <p style="font-size:13px;color:var(--txt2);margin-bottom:10px;line-height:1.45">Add new context, correct something, or change your requirements — the entire blueprint will be regenerated.</p>
     <textarea class="inp" rows="3" style="resize:vertical;margin-bottom:10px" placeholder="e.g. I forgot to mention I use HubSpot as my CRM. Also, my company won't allow connecting Slack to external AI tools." id="refineArea">${state.refinement||""}</textarea>
@@ -763,6 +812,11 @@ function renderResult() {
     </div>
   </div>`;
 
+  // ── FAB ──────────────────────────────────────────────────────────────────
+  const fab = `<button class="fab no-print" id="refine-fab" onclick="scrollToRefine()" title="Refine your blueprint">
+    🔁 <span>Refine</span>
+  </button>`;
+
   return `<div class="fu">
     <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:6px;flex-wrap:wrap" class="no-print">
       <div></div>
@@ -770,21 +824,11 @@ function renderResult() {
     </div>
     ${executiveSummary}
     ${cliffWarn}
-    ${flowHtml}
-    ${threeGrid}
-    ${billingNote}
-    ${taskBreakdown}
-    ${toolAnalysis}
-    ${roiSection}
-    ${disclaimer}
-    <div style="margin-bottom:10px" class="no-print">
-      <button class="btn-p" onclick="setState({showDetails:!state.showDetails})" style="background:var(--bg2);color:var(--txt);border:1px solid var(--bdr)">
-        ${state.showDetails ? "▲ Hide step-by-step guide" : "▼ Get step-by-step build guide"}
-      </button>
-    </div>
-    ${stepsHtml}
+    ${tabBar}
+    ${tabContent}
     ${refinementBox}
     <p style="text-align:center;font-size:11px;color:var(--txt3);margin-top:12px" class="no-print">Session auto-saved · Use the Save button in the header anytime</p>
+    ${fab}
   </div>`;
 }
 
@@ -792,8 +836,25 @@ function render() {
   const app = document.getElementById("app");
   if (!app) return;
 
+  // Clear any running tip carousel before every render
+  if (window._tipInterval) { clearInterval(window._tipInterval); window._tipInterval = null; }
+
   if (state.loadStage) {
     app.innerHTML = renderHeader() + `<div style="max-width:680px;margin:0 auto;padding:20px">${renderLoading(state.loadStage)}</div>` + renderFooter();
+    // Start rotating tips only during the longer generate stage
+    if (state.loadStage === "generate") {
+      let tipIdx = TIPS.findIndex(t => document.getElementById("loading-tip")?.textContent === t);
+      if (tipIdx < 0) tipIdx = 0;
+      window._tipInterval = setInterval(() => {
+        const el = document.getElementById("loading-tip");
+        if (!el) { clearInterval(window._tipInterval); window._tipInterval = null; return; }
+        tipIdx = (tipIdx + 1) % TIPS.length;
+        el.textContent = TIPS[tipIdx];
+        el.classList.remove("tip-text");
+        void el.offsetWidth; // force reflow to restart animation
+        el.classList.add("tip-text");
+      }, 4500);
+    }
     return;
   }
 
@@ -865,6 +926,12 @@ window.resumeSession = () => {
   if (s) setState({ ...s, loadStage: null, error: "", saveFlash: false });
 };
 window.dismissSaved = () => { clearState(); render(); };
+window.scrollToRefine = () => {
+  const section = document.getElementById("refinement-section");
+  const area = document.getElementById("refineArea");
+  if (section) section.scrollIntoView({ behavior: "smooth", block: "center" });
+  if (area) setTimeout(() => area.focus(), 300);
+};
 
 render();
 </script>
