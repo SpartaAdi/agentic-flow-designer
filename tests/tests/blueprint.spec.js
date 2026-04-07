@@ -772,6 +772,232 @@ test.describe("v2.1 — 1-Click Prompt Copy", () => {
   });
 });
 
+
+// ─── SUITE 16: v3.2 — AFFILIATE LINKS ────────────────────────────────────────
+
+test.describe("v3.2 — Affiliate Links", () => {
+  test("affiliate links are rendered on result screen", async ({ page }) => {
+    test.setTimeout(TIMEOUT);
+    await runToResult(page);
+    // Affiliate links should appear on the Summary tab (default)
+    const affLinks = page.locator("a.aff-link, a[href*='utm_source=blueprint']");
+    const count = await affLinks.count();
+    expect(count).toBeGreaterThan(0);
+  });
+
+  test("platform recommendation is an affiliate link", async ({ page }) => {
+    test.setTimeout(TIMEOUT);
+    await runToResult(page);
+    // The platform card should contain an anchor with affiliate param
+    const platLink = page.locator(".card a[href*='utm_source=blueprint']").first();
+    await expect(platLink).toBeVisible();
+    const href = await platLink.getAttribute("href");
+    expect(href).toContain("utm_source=blueprint");
+  });
+
+  test("affiliate links open in new tab", async ({ page }) => {
+    test.setTimeout(TIMEOUT);
+    await runToResult(page);
+    const affLink = page.locator("a[href*='utm_source=blueprint']").first();
+    const target = await affLink.getAttribute("target");
+    expect(target).toBe("_blank");
+  });
+
+  test("affiliate links have rel=noopener for security", async ({ page }) => {
+    test.setTimeout(TIMEOUT);
+    await runToResult(page);
+    const affLink = page.locator("a[href*='utm_source=blueprint']").first();
+    const rel = await affLink.getAttribute("rel");
+    expect(rel).toContain("noopener");
+  });
+
+  test("hero LLM pill is an affiliate link", async ({ page }) => {
+    test.setTimeout(TIMEOUT);
+    await runToResult(page);
+    // Hero section pills — LLM pill should be an anchor
+    const llmPill = page.locator("a[href*='utm_source=blueprint']").filter({ hasText: /claude|gemini|gpt/i }).first();
+    await expect(llmPill).toBeVisible();
+  });
+
+  test("workflow architecture tab shows affiliate links in LLM legend", async ({ page }) => {
+    test.setTimeout(TIMEOUT);
+    await runToResult(page);
+    await page.locator("[data-tab='architecture']").click();
+    // LLM distribution legend items should be anchor links
+    const legendLinks = page.locator("#flowchart-card a.aff-link, #flowchart-card a.pill");
+    const count = await legendLinks.count();
+    expect(count).toBeGreaterThan(0);
+  });
+});
+
+// ─── SUITE 17: v4.2 — INTERACTIVE FLOWCHART ──────────────────────────────────
+
+test.describe("v4.2 — Interactive Flowchart", () => {
+  test("flowchart card renders on architecture tab", async ({ page }) => {
+    test.setTimeout(TIMEOUT);
+    await runToResult(page);
+    await page.locator("[data-tab='architecture']").click();
+    const chart = page.locator("#flowchart-card");
+    await expect(chart).toBeVisible();
+  });
+
+  test("flowchart contains clickable nodes with data-flow-node", async ({ page }) => {
+    test.setTimeout(TIMEOUT);
+    await runToResult(page);
+    await page.locator("[data-tab='architecture']").click();
+    const nodes = page.locator("[data-flow-node]");
+    const count = await nodes.count();
+    expect(count).toBeGreaterThan(0);
+  });
+
+  test("clicking a node shows the tooltip/expansion", async ({ page }) => {
+    test.setTimeout(TIMEOUT);
+    await runToResult(page);
+    await page.locator("[data-tab='architecture']").click();
+    const firstNode = page.locator("[data-flow-node]").first();
+    await firstNode.click();
+    // Tooltip should now be visible inside the active node
+    const tooltip = page.locator(".fc-tooltip").first();
+    await expect(tooltip).toBeVisible({ timeout: 2000 });
+  });
+
+  test("clicking an active node collapses the tooltip", async ({ page }) => {
+    test.setTimeout(TIMEOUT);
+    await runToResult(page);
+    await page.locator("[data-tab='architecture']").click();
+    const firstNode = page.locator("[data-flow-node]").first();
+    // Open
+    await firstNode.click();
+    await expect(page.locator(".fc-tooltip").first()).toBeVisible({ timeout: 2000 });
+    // Close — click again
+    await firstNode.click();
+    await expect(page.locator(".fc-tooltip")).toHaveCount(0, { timeout: 2000 });
+  });
+
+  test("active node gains .active CSS class", async ({ page }) => {
+    test.setTimeout(TIMEOUT);
+    await runToResult(page);
+    await page.locator("[data-tab='architecture']").click();
+    const firstNode = page.locator("[data-flow-node]").first();
+    await firstNode.click();
+    await expect(firstNode).toHaveClass(/active/);
+  });
+
+  test("tooltip contains LLM information", async ({ page }) => {
+    test.setTimeout(TIMEOUT);
+    await runToResult(page);
+    await page.locator("[data-tab='architecture']").click();
+    // Click nodes until we find one with an LLM tooltip
+    const nodes = page.locator("[data-flow-node]");
+    const count = await nodes.count();
+    let foundLLM = false;
+    for (let i = 0; i < count && !foundLLM; i++) {
+      await nodes.nth(i).click();
+      const tooltip = page.locator(".fc-tooltip").first();
+      if (await tooltip.isVisible()) {
+        const text = await tooltip.textContent();
+        if (text && (text.includes("Claude") || text.includes("Gemini") || text.includes("GPT"))) {
+          foundLLM = true;
+        }
+        // Collapse before next click
+        await nodes.nth(i).click();
+      }
+    }
+    // At least one node should have an LLM in its tooltip
+    expect(foundLLM).toBeTruthy();
+  });
+
+  test("flowchart renders on mobile viewport without overflow", async ({ page }) => {
+    test.setTimeout(TIMEOUT);
+    await page.setViewportSize({ width: 390, height: 844 });
+    await runToResult(page);
+    await page.locator("[data-tab='architecture']").click();
+    const chart = page.locator("#flowchart-card");
+    await expect(chart).toBeVisible();
+    // flowchart-nodes container should not exceed viewport width
+    const box = await page.locator("#flowchart-nodes").boundingBox();
+    if (box) {
+      expect(box.width).toBeLessThanOrEqual(410); // allow small overflow for scrollable container
+    }
+  });
+
+  test("'Click any node to expand' hint text is visible", async ({ page }) => {
+    test.setTimeout(TIMEOUT);
+    await runToResult(page);
+    await page.locator("[data-tab='architecture']").click();
+    await expect(page.locator("text=Click any node to expand").first()).toBeVisible();
+  });
+});
+
+// ─── SUITE 18: v5.1 — ENHANCED COST BREAKDOWN ────────────────────────────────
+
+test.describe("v5.1 — Enhanced Cost Breakdown", () => {
+  test("cost breakdown card renders on summary tab", async ({ page }) => {
+    test.setTimeout(TIMEOUT);
+    await runToResult(page);
+    // data-cost-monthly should be present in summary tab
+    const monthlyCost = page.locator("[data-cost-monthly]").first();
+    await expect(monthlyCost).toBeVisible();
+  });
+
+  test("single run cost is displayed", async ({ page }) => {
+    test.setTimeout(TIMEOUT);
+    await runToResult(page);
+    const singleRun = page.locator("[data-cost-single]").first();
+    await expect(singleRun).toBeVisible();
+    const text = await singleRun.textContent();
+    expect(text).toContain("₹");
+  });
+
+  test("per-LLM cost rows are displayed", async ({ page }) => {
+    test.setTimeout(TIMEOUT);
+    await runToResult(page);
+    const llmCosts = page.locator("[data-cost-llm]");
+    const count = await llmCosts.count();
+    // At least one per-LLM row should exist
+    expect(count).toBeGreaterThan(0);
+  });
+
+  test("per-LLM cost shows ₹ value", async ({ page }) => {
+    test.setTimeout(TIMEOUT);
+    await runToResult(page);
+    const firstLlmCost = page.locator("[data-cost-llm]").first();
+    const text = await firstLlmCost.textContent();
+    expect(text).toContain("₹");
+    expect(text).toContain("/mo");
+  });
+
+  test("frequency/run label is shown", async ({ page }) => {
+    test.setTimeout(TIMEOUT);
+    await runToResult(page);
+    // The cost card shows run frequency label — look for "runs" or "run"
+    const costCard = page.locator("[data-cost-monthly]").locator("..").locator("..");
+    const text = await page.locator("[data-cost-monthly]").textContent();
+    expect(text?.toLowerCase()).toMatch(/run|mo/);
+  });
+
+  test("monthly total contains both ₹ and $ figures", async ({ page }) => {
+    test.setTimeout(TIMEOUT);
+    await runToResult(page);
+    const monthly = page.locator("[data-cost-monthly]").first();
+    const text = await monthly.textContent();
+    expect(text).toContain("₹");
+    expect(text).toContain("$");
+  });
+
+  test("cost breakdown card label reads 'Cost breakdown'", async ({ page }) => {
+    test.setTimeout(TIMEOUT);
+    await runToResult(page);
+    await expect(page.locator("text=Cost breakdown").first()).toBeVisible();
+  });
+
+  test("payload size is shown in cost card", async ({ page }) => {
+    test.setTimeout(TIMEOUT);
+    await runToResult(page);
+    await expect(page.locator("text=Payload size").first()).toBeVisible();
+  });
+});
+
 // ─── HELPER FUNCTIONS ─────────────────────────────────────────────────────
 
 async function fillIntakeForm(page, userType) {
