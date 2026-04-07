@@ -424,14 +424,16 @@ function renderIntake() {
       <div>
         <span class="lbl">Organisation size *</span>
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px">
-          ${["Startup (< 200)","Mid-size (200–1000)","Enterprise (1000+)"].map(o => `<div class="opt ${ui("orgType")===o?"sel":""}" onclick="setIntake('orgType','${o}')" style="justify-content:center"><span style="font-size:12px;text-align:center">${o}</span></div>`).join("")}
+          ${["Startup (< 200)","Mid-size (200\u20131000)","Enterprise (1000+)"].map(o => `<div class="opt ${ui("orgType")===o?"sel":""}" onclick="setIntake('orgType','${o}')" style="justify-content:center"><span style="font-size:12px;text-align:center">${o}</span></div>`).join("")}
         </div>
       </div>
       <select class="inp" onchange="setIntake('dept',this.value)">
         <option value="">Department *</option>
         ${["Operations","Marketing","Sales","HR","Product","Finance","Technology / IT","Other"].map(d => `<option ${ui("dept")===d?"selected":""}>${d}</option>`).join("")}
       </select>
-      <input class="inp" placeholder="Company name (optional)" value="${ui("company")}" oninput="setSilentIntake('company',this.value)" />
+      <input class="inp" placeholder="Company name (optional)" value="${ui(\"company\")}" oninput="setSilentIntake('company',this.value)" />
+    </div>`;
+  } else if (ui("userType") === "CXO / Founder") {
     conditional = `<div style="margin-bottom:16px;display:grid;gap:9px">
       <select class="inp" onchange="setIntake('role',this.value)">
         <option value="">Your role *</option>
@@ -441,7 +443,7 @@ function renderIntake() {
         <option value="">Use case relates to which function? *</option>
         ${["Operations","Marketing","Sales","HR","Product","Finance","Technology","Other"].map(d => `<option ${ui("dept")===d?"selected":""}>${d}</option>`).join("")}
       </select>
-      <input class="inp" placeholder="Company name (optional)" value="${ui("company")}" oninput="setSilentIntake('company',this.value)" />
+      <input class="inp" placeholder="Company name (optional)" value="${ui(\"company\")}" oninput="setSilentIntake('company',this.value)" />
     </div>`;
   }
 
