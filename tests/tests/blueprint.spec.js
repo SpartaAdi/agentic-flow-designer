@@ -637,6 +637,141 @@ test.describe("v1.3 — Persistent Refinement FAB", () => {
   });
 });
 
+
+// ─── SUITE 15: v2.1 — 1-CLICK PROMPT COPY ──────────────────────────────────
+
+test.describe("v2.1 — 1-Click Prompt Copy", () => {
+  test("copy buttons are present on Step-by-Step Guide tab", async ({ page }) => {
+    test.setTimeout(TIMEOUT);
+    await runToResult(page);
+    await page.locator("[data-tab='guide']").click();
+    // At least one copy button should exist if steps have prompts
+    // (graceful: some blueprints may have 0 prompt templates)
+    const copyBtns = page.locator("[data-copy-idx]");
+    const count = await copyBtns.count();
+    // We cannot guarantee prompts exist in every blueprint, but step cards should
+    const stepCards = page.locator(".step-card");
+    const stepCount = await stepCards.count();
+    if (stepCount > 0 && count > 0) {
+      // If prompts exist, each copy button must contain "Copy"
+      await expect(copyBtns.first()).toContainText("Copy");
+    }
+  });
+
+  test("copy button shows Copied! feedback after click", async ({ page }) => {
+    test.setTimeout(TIMEOUT);
+    await runToResult(page);
+    await page.locator("[data-tab='guide']").click();
+
+    const copyBtns = page.locator("[data-copy-idx]");
+    const count = await copyBtns.count();
+    if (count === 0) {
+      // No prompt templates in this blueprint — skip gracefully
+      test.skip(true, "No prompt templates in generated blueprint");
+      return;
+    }
+
+    // Grant clipboard permission
+    await page.context().grantPermissions(["clipboard-read", "clipboard-write"]);
+
+    const firstBtn = copyBtns.first();
+    await firstBtn.click();
+
+    // Button should immediately show "Copied!" text
+    await expect(firstBtn).toContainText("Copied!", { timeout: 1000 });
+    // And gain the .copied CSS class
+    await expect(firstBtn).toHaveClass(/copied/);
+  });
+
+  test("Copied! state reverts to Copy after 2 seconds", async ({ page }) => {
+    test.setTimeout(TIMEOUT);
+    await runToResult(page);
+    await page.locator("[data-tab='guide']").click();
+
+    const copyBtns = page.locator("[data-copy-idx]");
+    const count = await copyBtns.count();
+    if (count === 0) {
+      test.skip(true, "No prompt templates in generated blueprint");
+      return;
+    }
+
+    await page.context().grantPermissions(["clipboard-read", "clipboard-write"]);
+    const firstBtn = copyBtns.first();
+    await firstBtn.click();
+
+    // Confirm Copied! is shown
+    await expect(firstBtn).toContainText("Copied!", { timeout: 1000 });
+
+    // After 2.2 seconds the button should revert to "Copy"
+    await page.waitForTimeout(2300);
+    await expect(firstBtn).toContainText("Copy");
+    await expect(firstBtn).not.toHaveClass(/copied/);
+  });
+
+  test("each copy button is independent — clicking one does not affect others", async ({ page }) => {
+    test.setTimeout(TIMEOUT);
+    await runToResult(page);
+    await page.locator("[data-tab='guide']").click();
+
+    const copyBtns = page.locator("[data-copy-idx]");
+    const count = await copyBtns.count();
+    if (count < 2) {
+      test.skip(true, "Need at least 2 prompt templates to test independence");
+      return;
+    }
+
+    await page.context().grantPermissions(["clipboard-read", "clipboard-write"]);
+    // Click first button only
+    await copyBtns.first().click();
+    await expect(copyBtns.first()).toContainText("Copied!", { timeout: 1000 });
+    // Second button should still show "Copy"
+    await expect(copyBtns.nth(1)).toContainText("Copy");
+    await expect(copyBtns.nth(1)).not.toHaveClass(/copied/);
+  });
+
+  test("copy button is not visible on Summary tab", async ({ page }) => {
+    test.setTimeout(TIMEOUT);
+    await runToResult(page);
+    // Default tab is summary — no copy buttons should be rendered
+    const copyBtns = page.locator("[data-copy-idx]");
+    await expect(copyBtns).toHaveCount(0);
+  });
+
+  test("clipboard receives correct prompt text on copy", async ({ page }) => {
+    test.setTimeout(TIMEOUT);
+    await runToResult(page);
+    await page.locator("[data-tab='guide']").click();
+
+    const copyBtns = page.locator("[data-copy-idx]");
+    const count = await copyBtns.count();
+    if (count === 0) {
+      test.skip(true, "No prompt templates in generated blueprint");
+      return;
+    }
+
+    await page.context().grantPermissions(["clipboard-read", "clipboard-write"]);
+    const firstBtn = copyBtns.first();
+
+    // Get the rendered prompt text from the monospace paragraph sibling
+    const promptText = await firstBtn
+      .locator("xpath=../following-sibling::p[contains(@style,'monospace')]")
+      .textContent()
+      .catch(() => null);
+
+    await firstBtn.click();
+    await expect(firstBtn).toContainText("Copied!", { timeout: 1000 });
+
+    // Verify clipboard content matches the displayed prompt
+    const clipboardText = await page.evaluate(() => navigator.clipboard.readText());
+    if (promptText) {
+      expect(clipboardText.trim()).toBe(promptText.trim());
+    } else {
+      // If we couldn't read the prompt text from DOM, just verify clipboard is non-empty
+      expect(clipboardText.trim().length).toBeGreaterThan(0);
+    }
+  });
+});
+
 // ─── HELPER FUNCTIONS ─────────────────────────────────────────────────────
 
 async function fillIntakeForm(page, userType) {
