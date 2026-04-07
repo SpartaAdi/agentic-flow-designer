@@ -107,6 +107,9 @@
     .fab:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(66,133,244,.5)}
     @keyframes tipFade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
     .tip-text{animation:tipFade .4s ease forwards}
+    .copy-btn{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border:1px solid var(--bdr2);border-radius:var(--r);background:transparent;color:var(--txt3);font-size:11px;font-weight:500;cursor:pointer;font-family:inherit;transition:all .15s;flex-shrink:0}
+    .copy-btn:hover{border-color:var(--pr);color:var(--pr-tx);background:var(--pr-bg)}
+    .copy-btn.copied{border-color:var(--ok);color:var(--ok-tx);background:var(--ok-bg)}
   </style>
 </head>
 <body>
@@ -773,7 +776,14 @@ function renderResult() {
         </div>
         <p style="font-size:13px;color:var(--txt2);line-height:1.55;margin-bottom:10px">${step.description}</p>
         ${step.promptTemplate ? `<div style="background:var(--bg3);border-radius:var(--r);padding:10px 13px;margin-bottom:10px">
-          <p style="margin:0 0 4px;font-size:10px;font-weight:600;color:var(--txt3);text-transform:uppercase;letter-spacing:.07em">Prompt to use</p>
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px">
+            <p style="margin:0;font-size:10px;font-weight:600;color:var(--txt3);text-transform:uppercase;letter-spacing:.07em">Prompt to use</p>
+            <button class="copy-btn" data-copy-idx="${step.taskNumber}" data-prompt="${step.promptTemplate.replace(/"/g,'&quot;').replace(/
+/g,'&#10;')}">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+              Copy
+            </button>
+          </div>
           <p style="margin:0;font-size:12px;color:var(--pr-tx);font-family:monospace;line-height:1.55;white-space:pre-wrap">${step.promptTemplate}</p>
         </div>` : ""}
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:7px">
@@ -893,6 +903,28 @@ function render() {
         prev[qId] = val ? `Other: ${val}` : "";
       }
       state.answers = prev;
+    });
+  });
+
+  // Copy-prompt buttons — per-block state, no global re-render needed
+  document.querySelectorAll("[data-copy-idx]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const raw = btn.dataset.prompt
+        .replace(/&quot;/g, '"')
+        .replace(/&#10;/g, "\n");
+      navigator.clipboard.writeText(raw).then(() => {
+        btn.classList.add("copied");
+        btn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Copied!`;
+        setTimeout(() => {
+          btn.classList.remove("copied");
+          btn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy`;
+        }, 2000);
+      }).catch(() => {
+        // Clipboard API unavailable — fallback selection
+        const range = document.createRange();
+        const pre = btn.closest("div").querySelector("p[style*='monospace']");
+        if (pre) { range.selectNodeContents(pre); window.getSelection().removeAllRanges(); window.getSelection().addRange(range); }
+      });
     });
   });
 
