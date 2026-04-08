@@ -13,6 +13,7 @@
   <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <style>
     :root {
       --bg: #FFFFFF;
@@ -138,14 +139,14 @@ const STORAGE_KEY = "blueprint_v1";
 const USD = 84;
 
 const PLATDATA = {
-  "Make.com": { free:"1,000 ops/mo · 2 scenarios", paid:"$9/mo (Core)", paidINR:"₹756/mo", verdict:"freemium" },
-  "Zapier": { free:"100 tasks/mo · unlimited Zaps", paid:"$19.99/mo (Starter)", paidINR:"₹1,679/mo", verdict:"limited" },
-  "n8n (self-hosted)": { free:"Unlimited (Community Edition)", paid:"Cloud from $24/mo", paidINR:"₹2,016/mo", verdict:"freemium" },
-  "Relevance AI": { free:"200 Actions/mo + $2 credits", paid:"$19/mo (Team)", paidINR:"₹1,596/mo", verdict:"freemium" },
-  "Voiceflow": { free:"2 agents · limited msgs", paid:"$50/mo (Pro)", paidINR:"₹4,200/mo", verdict:"freemium" },
-  "Langflow": { free:"Open source · self-hosted", paid:"Cloud varies", paidINR:"Varies", verdict:"freemium" },
-  "Vertex AI Agent Builder": { free:"GCP trial $300 credits", paid:"Pay-per-use GCP", paidINR:"Pay-per-use", verdict:"paid" },
-  "None (Direct LLM)": { free:"No platform needed", paid:"LLM API only", paidINR:"LLM only", verdict:"freemium" },
+  "Make.com":               { free:"1,000 ops/mo · 2 scenarios", paid:"$9/mo (Core)", paidINR:"₹756/mo",   paidUSD:9,     verdict:"freemium" },
+  "Zapier":                 { free:"100 tasks/mo · unlimited Zaps", paid:"$19.99/mo (Starter)", paidINR:"₹1,679/mo", paidUSD:19.99, verdict:"limited" },
+  "n8n (self-hosted)":      { free:"Unlimited (Community Edition)", paid:"Cloud from $24/mo", paidINR:"₹2,016/mo", paidUSD:0,     verdict:"freemium" },
+  "Relevance AI":           { free:"200 Actions/mo + $2 credits", paid:"$19/mo (Team)", paidINR:"₹1,596/mo", paidUSD:19,    verdict:"freemium" },
+  "Voiceflow":              { free:"2 agents · limited msgs", paid:"$50/mo (Pro)", paidINR:"₹4,200/mo",   paidUSD:50,    verdict:"freemium" },
+  "Langflow":               { free:"Open source · self-hosted", paid:"Cloud varies", paidINR:"Varies",       paidUSD:0,     verdict:"freemium" },
+  "Vertex AI Agent Builder":{ free:"GCP trial $300 credits", paid:"Pay-per-use GCP", paidINR:"Pay-per-use",  paidUSD:0,     verdict:"paid" },
+  "None (Direct LLM)":      { free:"No platform needed", paid:"LLM API only", paidINR:"LLM only",          paidUSD:0,     verdict:"freemium" },
 };
 
 const LLMDATA = {
@@ -366,22 +367,32 @@ async function callAPI(system, user) {
 }
 
 function calcCost(result, answers, questions) {
-  // Determine payload size from clarifying answers
+  // ── 1. Payload size ──────────────────────────────────────────────────────
   const pq = questions.find(q => /page|size|document|long/i.test(q.question));
   const pAns = pq ? (Array.isArray(answers[pq.id]) ? answers[pq.id][0] : answers[pq.id]) : null;
   const payload = PAYLOAD[pAns] || PAYLOAD["Medium (5–20 pages)"];
 
-  // Monthly run count and label per execution approach
-  const runsMap = {
-    "Direct LLM Usage":          { count: 1,   label: "1 run (one-time)" },
-    "LLM Skill / Prompt Template":{ count: 30,  label: "~30 runs/mo" },
-    "Scheduled Automation":       { count: 100, label: "~100 runs/mo" },
-    "Full Autonomous Agent":      { count: 300, label: "~300 runs/mo" },
+  // ── 2. Frequency — CLARIFY Q1 ("How many times per month") overrides exec type ──
+  const freqQ = questions.find(q => /how many times|per month|times.{0,10}month|frequency|often/i.test(q.question));
+  const freqAns = freqQ ? (Array.isArray(answers[freqQ.id]) ? answers[freqQ.id][0] : answers[freqQ.id]) : null;
+  const freqMap = {
+    "1–5 times":         { count: 3,  label: "~3 runs/mo"  },
+    "6–15 times":        { count: 10, label: "~10 runs/mo" },
+    "16–30 times":       { count: 23, label: "~23 runs/mo" },
+    "30+ times / daily": { count: 35, label: "~35 runs/mo" },
   };
-  const runInfo = runsMap[result?.executionApproach] || { count: 100, label: "~100 runs/mo" };
+  const execRunsMap = {
+    "Direct LLM Usage":           { count: 1,   label: "1 run (one-time)"  },
+    "LLM Skill / Prompt Template":{ count: 30,  label: "~30 runs/mo"       },
+    "Scheduled Automation":       { count: 100, label: "~100 runs/mo"      },
+    "Full Autonomous Agent":      { count: 300, label: "~300 runs/mo"      },
+  };
+  const fromFreq = freqAns ? freqMap[freqAns] : null;
+  const fromExec = execRunsMap[result?.executionApproach] || { count: 100, label: "~100 runs/mo" };
+  const runInfo  = fromFreq || fromExec;
   const monthlyRuns = runInfo.count;
 
-  // Per-LLM cost breakdown across all tasks
+  // ── 3. Per-LLM API cost breakdown ────────────────────────────────────────
   const perLLM = {};
   (result?.llmDistribution || []).forEach(d => {
     const info = LLMDATA[d.llm];
@@ -390,31 +401,53 @@ function calcCost(result, answers, questions) {
     const singleUSD = ((payload.in / 1e6) * info.in + (payload.out / 1e6) * info.out) * taskShare;
     perLLM[d.llm] = {
       singleUSD,
-      monthlyUSD: singleUSD * monthlyRuns,
-      taskCount: d.taskCount,
-      taskNames: d.taskNames || [],
+      singleINR:   singleUSD * USD,
+      monthlyUSD:  singleUSD * monthlyRuns,
+      monthlyINR:  singleUSD * monthlyRuns * USD,
+      taskCount:   d.taskCount,
+      taskNames:   d.taskNames || [],
     };
   });
 
-  // Primary LLM fallback
+  // Primary LLM fallback when no distribution data
   const primaryInfo = LLMDATA[result?.primaryLLM];
   if (!primaryInfo) return null;
 
   const singleRunUSD = Object.values(perLLM).reduce((s, v) => s + v.singleUSD, 0)
     || ((payload.in / 1e6) * primaryInfo.in + (payload.out / 1e6) * primaryInfo.out);
 
-  const monthlyUSD = singleRunUSD * monthlyRuns;
+  const apiMonthlyUSD = singleRunUSD * monthlyRuns;
+
+  // ── 4. Platform subscription cost ────────────────────────────────────────
+  const platData  = PLATDATA[result?.platformRecommendation];
+  const isFree    = result?.freemiumVerdict === "Freemium sufficient";
+  const platMonthlyUSD = (isFree || !platData?.paidUSD) ? 0 : platData.paidUSD;
+
+  // ── 5. Grand total ────────────────────────────────────────────────────────
+  const totalMonthlyUSD = apiMonthlyUSD + platMonthlyUSD;
 
   return {
-    usd: monthlyUSD,
-    inr: monthlyUSD * USD,
-    runs: monthlyRuns,
-    runsLabel: runInfo.label,
-    buf: 1.0,
+    // ── Legacy fields kept for backward compatibility ──────────────────────
+    usd:          totalMonthlyUSD,
+    inr:          totalMonthlyUSD * USD,
+    runs:         monthlyRuns,
+    runsLabel:    runInfo.label,
+    buf:          1.0,
     singleRunUSD,
     singleRunINR: singleRunUSD * USD,
     perLLM,
-    payload: pAns || "Medium (5–20 pages)",
+    payload:      pAns || "Medium (5–20 pages)",
+    // ── New granular fields ────────────────────────────────────────────────
+    apiMonthlyUSD,
+    apiMonthlyINR:   apiMonthlyUSD * USD,
+    platMonthlyUSD,
+    platMonthlyINR:  platMonthlyUSD * USD,
+    platIsFree:      isFree || platMonthlyUSD === 0,
+    platLabel:       isFree ? "Free tier" : (platData?.paid || "Paid plan"),
+    totalMonthlyUSD,
+    totalMonthlyINR: totalMonthlyUSD * USD,
+    monthlyRuns,
+    freqFromUser:    !!fromFreq,
   };
 }
 
@@ -818,7 +851,7 @@ function renderResult() {
   </div>` : "";
 
   // ── Tab 1: Executive Summary & ROI ───────────────────────────────────────
-  const threeGrid = `<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:12px" class="three-col">
+  const threeGrid = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px" class="two-col">
     <div class="card" style="margin-bottom:0">
       <span class="lbl">Platform</span>
       <p style="font-size:14px;font-weight:600;color:var(--txt);margin-bottom:4px">${affLink(r.platformRecommendation)}</p>
@@ -839,23 +872,50 @@ function renderResult() {
         <p style="font-size:11px;color:var(--txt3)">${llmInfo.note}</p>
       </div>` : ""}
     </div>
-    <div class="card" style="margin-bottom:0">
-      <span class="lbl">Cost breakdown</span>
-      ${cost ? `
-        <div class="row"><span style="color:var(--txt2)">Payload size</span><span style="font-size:11px;color:var(--txt3)">${cost.payload}</span></div>
-        <div class="row"><span style="color:var(--txt2)">Single run cost</span><span style="font-weight:600;color:var(--ok-tx)" data-cost-single>₹${cost.singleRunINR < 1 ? cost.singleRunINR.toFixed(4) : Math.round(cost.singleRunINR).toLocaleString("en-IN")}</span></div>
-        <div class="row"><span style="color:var(--txt2)">Frequency</span><span style="font-size:11px;color:var(--txt3)">${cost.runsLabel}</span></div>
-        ${Object.entries(cost.perLLM).map(([llm, v]) => {
-          const llmClr = llm.includes("Claude") ? "var(--ok-tx)" : llm.includes("Gemini") ? "var(--wn-tx)" : "var(--pr-tx)";
-          return `<div class="row"><span style="font-size:11px;color:var(--txt2)">↳ ${llm}</span><span style="font-size:11px;font-weight:500;color:${llmClr}" data-cost-llm>₹${v.monthlyUSD * USD < 1 ? (v.monthlyUSD * USD).toFixed(4) : Math.round(v.monthlyUSD * USD).toLocaleString("en-IN")}/mo</span></div>`;
-        }).join("")}
-        <div style="margin-top:10px;background:var(--bg2);border-radius:var(--r);padding:10px;text-align:center" data-cost-monthly>
-          <p style="font-size:10px;color:var(--txt3);margin-bottom:2px">Est. monthly total</p>
-          <p style="font-size:22px;font-weight:700;color:var(--txt)">₹${Math.round(cost.inr).toLocaleString("en-IN")}</p>
-          <p style="font-size:11px;color:var(--txt3)">≈ $${cost.usd.toFixed(2)}/mo · ${cost.runsLabel}</p>
-        </div>` : `<p style="font-size:12px;color:var(--txt2)">Varies by usage</p>`}
-    </div>
   </div>`;
+
+  // ── Granular cost breakdown card ──────────────────────────────────────────
+  const costCard = cost ? `<div class="card" style="margin-bottom:12px" data-pdf-section="cost">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+      <span class="lbl" style="margin-bottom:0">💰 Cost breakdown</span>
+      <span style="font-size:10px;color:var(--txt3)">Assumptions: ${cost.payload} · ${cost.runsLabel}${cost.freqFromUser ? " · from your answer" : " · from execution type"}</span>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px" class="two-col">
+
+      <div>
+        <p style="font-size:10px;font-weight:600;color:var(--txt3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Single execution (API only)</p>
+        <div class="row" style="padding:5px 0"><span style="color:var(--txt2);font-size:12px">Total one-time run</span><span style="font-weight:700;color:var(--txt)" data-cost-single>₹${cost.singleRunINR < 1 ? cost.singleRunINR.toFixed(4) : Math.round(cost.singleRunINR).toLocaleString("en-IN")}</span></div>
+        ${Object.entries(cost.perLLM).map(([llm, v]) => {
+          const c = llm.includes("Claude") ? "var(--ok-tx)" : llm.includes("Gemini") ? "var(--wn-tx)" : "var(--pr-tx)";
+          return `<div class="row" style="padding:4px 0"><span style="font-size:11px;color:var(--txt3);padding-left:10px">↳ ${llm} (${v.taskCount} task${v.taskCount > 1 ? "s" : ""})</span><span style="font-size:11px;color:${c}">₹${v.singleINR < 1 ? v.singleINR.toFixed(4) : Math.round(v.singleINR).toLocaleString("en-IN")}</span></div>`;
+        }).join("")}
+        <p style="font-size:10px;color:var(--txt3);margin-top:6px;line-height:1.4">Based on ${cost.payload.split("(")[0].trim()} payload size</p>
+      </div>
+
+      <div>
+        <p style="font-size:10px;font-weight:600;color:var(--txt3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Monthly projection (${cost.runsLabel})</p>
+        <div class="row" style="padding:5px 0"><span style="color:var(--txt2);font-size:12px">API cost</span><span style="font-weight:600;color:var(--txt)" data-cost-api>₹${Math.round(cost.apiMonthlyINR).toLocaleString("en-IN")}</span></div>
+        ${Object.entries(cost.perLLM).map(([llm, v]) => {
+          const c = llm.includes("Claude") ? "var(--ok-tx)" : llm.includes("Gemini") ? "var(--wn-tx)" : "var(--pr-tx)";
+          return `<div class="row" style="padding:4px 0"><span style="font-size:11px;color:var(--txt3);padding-left:10px">↳ ${llm}</span><span style="font-size:11px;font-weight:500;color:${c}" data-cost-llm>₹${Math.round(v.monthlyINR).toLocaleString("en-IN")}/mo</span></div>`;
+        }).join("")}
+        <div class="row" style="padding:5px 0"><span style="color:var(--txt2);font-size:12px">Platform subscription</span><span style="font-weight:600;color:${cost.platIsFree ? "var(--ok-tx)" : "var(--wn-tx)"}" data-cost-platform>${cost.platIsFree ? "Free" : "₹" + Math.round(cost.platMonthlyINR).toLocaleString("en-IN") + "/mo"}</span></div>
+        ${!cost.platIsFree ? `<div style="padding:0 0 4px 10px"><span style="font-size:10px;color:var(--txt3)">${cost.platLabel}</span></div>` : ""}
+      </div>
+    </div>
+
+    <div style="margin-top:12px;background:var(--pr-bg);border-radius:var(--r);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px" data-cost-monthly>
+      <div>
+        <p style="font-size:10px;color:var(--pr-tx);font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px">Est. total monthly cost</p>
+        <p style="font-size:10px;color:var(--txt3)">API ₹${Math.round(cost.apiMonthlyINR).toLocaleString("en-IN")} + Platform ${cost.platIsFree ? "₹0" : "₹" + Math.round(cost.platMonthlyINR).toLocaleString("en-IN")}</p>
+      </div>
+      <div style="text-align:right">
+        <p style="font-size:28px;font-weight:700;color:var(--txt);line-height:1">₹${Math.round(cost.totalMonthlyINR).toLocaleString("en-IN")}</p>
+        <p style="font-size:11px;color:var(--txt3)">≈ $${cost.totalMonthlyUSD.toFixed(2)}/mo</p>
+      </div>
+    </div>
+  </div>` : ""
 
   const billingNote = `<div style="background:var(--pr-bg);border:1px solid var(--bdr);border-radius:var(--r);padding:10px 14px;margin-bottom:12px;display:flex;gap:8px">
     <span style="font-size:14px;flex-shrink:0">ℹ</span>
@@ -889,7 +949,7 @@ function renderResult() {
     <p style="margin:0;font-size:11px;color:var(--txt3);line-height:1.5">⚠ Cost estimates are approximate. Platform pricing verified April 2026 — verify at: make.com · n8n.io · zapier.com · relevanceai.com · anthropic.com · openai.com · ai.google.dev · USD/INR at ₹84 (verify current rate)</p>
   </div>`;
 
-  const tabSummaryContent = `<div class="fu">${threeGrid}${billingNote}${roiSection}${disclaimer}</div>`;
+  const tabSummaryContent = `<div class="fu">${threeGrid}${costCard}${billingNote}${roiSection}${disclaimer}</div>`;
 
   // ── Tab 2: Workflow Architecture ─────────────────────────────────────────
   const flowHtml = (() => {
@@ -1059,17 +1119,16 @@ function renderResult() {
 
   // FAB removed — refinement box is inline under hero
 
-  return `<div class="fu">
+  return `<div class="fu" id="blueprint-pdf-content">
     <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:6px;flex-wrap:wrap" class="no-print">
       <div></div>
-      <button class="btn-s" style="font-size:12px;padding:7px 12px" onclick="window.print()">🖨 Print / Save PDF</button>
+      <button class="btn-s" style="font-size:12px;padding:7px 12px" onclick="downloadPDF()">⬇ Save PDF</button>
     </div>
     ${executiveSummary}
     ${refinementBox}
     ${cliffWarn}
     ${tabBar}
     ${tabContent}
-    ${refinementBox}
     <p style="text-align:center;font-size:11px;color:var(--txt3);margin-top:12px" class="no-print">Session auto-saved · Use the Save button in the header anytime</p>
   </div>`;
 }
@@ -1197,6 +1256,56 @@ window.resumeSession = () => {
 };
 window.dismissSaved = () => { clearState(); render(); };
 window.shareBlueprint = shareBlueprint;
+
+function downloadPDF() {
+  const el = document.getElementById("blueprint-pdf-content");
+  if (!el) { console.error("PDF target not found"); return; }
+
+  // Temporarily hide no-print elements
+  const hidden = [];
+  el.querySelectorAll(".no-print").forEach(e => {
+    hidden.push({ el: e, display: e.style.display });
+    e.style.display = "none";
+  });
+
+  // Force background colors/borders to be preserved by html2canvas
+  const cloneHandler = (doc) => {
+    const isDark = document.documentElement.getAttribute("data-theme") === "dark";
+    // Set light theme on clone for clean PDF output
+    doc.documentElement.setAttribute("data-theme", "light");
+    // Inline all computed background colors so html2canvas picks them up
+    doc.querySelectorAll("[class],[style]").forEach(node => {
+      const cs = window.getComputedStyle(node);
+      if (cs.backgroundColor && cs.backgroundColor !== "rgba(0, 0, 0, 0)") {
+        node.style.backgroundColor = cs.backgroundColor;
+      }
+      if (cs.color) node.style.color = cs.color;
+      if (cs.borderColor && cs.borderColor !== "rgba(0, 0, 0, 0)") {
+        node.style.borderColor = cs.borderColor;
+      }
+    });
+  };
+
+  const title = (document.querySelector("#blueprint-pdf-content h2") || {}).textContent || "Blueprint";
+  const filename = "Blueprint-" + title.replace(/[^a-zA-Z0-9]/g, "-").replace(/-+/g, "-").slice(0, 50) + ".pdf";
+
+  const opt = {
+    margin:     [8, 8, 8, 8],
+    filename,
+    image:      { type: "jpeg", quality: 0.97 },
+    html2canvas:{ scale: 2, useCORS: true, logging: false, backgroundColor: "#ffffff", onclone: cloneHandler },
+    jsPDF:      { unit: "mm", format: "a4", orientation: "portrait" },
+    pagebreak:  { mode: ["avoid-all", "css", "legacy"] },
+  };
+
+  html2pdf().set(opt).from(el).save().then(() => {
+    hidden.forEach(({ el: e, display: d }) => { e.style.display = d; });
+  }).catch(err => {
+    console.error("PDF error:", err);
+    hidden.forEach(({ el: e, display: d }) => { e.style.display = d; });
+  });
+}
+window.downloadPDF = downloadPDF;
 window.toggleFlowNode = (num) => setState({ activeFlowNode: state.activeFlowNode === num ? null : num });
 window.scrollToRefine = () => {
   const section = document.getElementById("refinement-section");
