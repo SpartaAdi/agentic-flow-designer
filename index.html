@@ -110,6 +110,15 @@
     .copy-btn{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border:1px solid var(--bdr2);border-radius:var(--r);background:transparent;color:var(--txt3);font-size:11px;font-weight:500;cursor:pointer;font-family:inherit;transition:all .15s;flex-shrink:0}
     .copy-btn:hover{border-color:var(--pr);color:var(--pr-tx);background:var(--pr-bg)}
     .copy-btn.copied{border-color:var(--ok);color:var(--ok-tx);background:var(--ok-bg)}
+    .ux-badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:20px;background:var(--pr-bg);color:var(--pr-tx);font-size:10px;font-weight:600;border:1px solid var(--pr)}
+    .toggle-row{display:flex;align-items:center;justify-content:space-between;gap:12px;background:var(--bg2);border:1px solid var(--bdr);border-radius:var(--r);padding:12px 14px;cursor:pointer;transition:border-color .15s}
+    .toggle-row:hover{border-color:var(--pr)}
+    .toggle-wrap{position:relative;width:38px;height:22px;flex-shrink:0}
+    .toggle-wrap input{opacity:0;width:0;height:0;position:absolute}
+    .toggle-slider{position:absolute;inset:0;background:var(--bdr2);border-radius:22px;transition:.2s;cursor:pointer}
+    .toggle-slider::before{content:'';position:absolute;height:16px;width:16px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.2s}
+    .toggle-wrap input:checked + .toggle-slider{background:var(--pr)}
+    .toggle-wrap input:checked + .toggle-slider::before{transform:translateX(16px)}
     .aff-link{color:var(--pr-tx);text-decoration:none;border-bottom:1px dashed var(--pr);transition:border-color .15s}
     .aff-link:hover{border-bottom-style:solid}
     .fc-node{background:var(--surf);border:1.5px solid var(--bdr);border-radius:var(--r);padding:10px 13px;cursor:pointer;transition:all .15s;position:relative;flex-shrink:0;min-width:100px;max-width:160px;text-align:center;box-shadow:var(--sh)}
@@ -207,136 +216,138 @@ function affLink(name) {
 }
 
 const TIPS = [
-  "💡 Assign different LLMs per task — Claude for writing, Gemini for research, GPT for data.",
-  "💡 Start with freemium platforms like Make.com before committing to paid plans.",
-  "💡 A Full Autonomous Agent costs ~3× more than a scheduled workflow — choose wisely.",
-  "💡 Claude has no long-context price cliff. GPT-5.4 doubles in cost above 272K tokens.",
-  "💡 Most automations run fine on 100 runs/month — that is 3–4 executions per day.",
-  "💡 Privacy-blocked tools don't have to stop your workflow — local models can fill the gap.",
-  "💡 ROI compounds: a 30-minute daily task automated saves ~130 hours every year.",
-  "💡 Gemini has native Google Search grounding — unmatched for real-time market research.",
-  "💡 Structured JSON output from LLMs is far more reliable than free-text parsing.",
-  "💡 A good system prompt is worth 10× a better model for repeatable business tasks.",
+  "📊 McKinsey (2024): organisations deploying Agentic AI workflows report 40–60% reduction in process cycle times within the first 90 days of rollout.",
+  "💰 Deloitte estimates that automating a single mid-complexity knowledge workflow saves an average of ₹18–24 lakhs per year in analyst and coordinator hours.",
+  "🚀 Gartner projects that by 2027, 40% of enterprise 'agentic' workloads will be autonomous end-to-end — up from under 5% in 2024. First movers capture disproportionate margin.",
+  "🔒 BCG research shows that AI-augmented teams outperform fully-automated pipelines on quality by 22% — the optimal model is AI drafts, human approves.",
+  "⚡ Stanford HAI (2025): the cost of running a GPT-4-class task fell 98% in 36 months. The cost of NOT automating a repeatable process now compounds at ~15% per year.",
 ];
 
 const inr = (usd) => "₹" + Math.round(usd * USD).toLocaleString("en-IN");
 
-const CLARIFY = `You are an AI automation consultant. Generate 5–10 clarifying questions for this user's automation use case.
-RULES: 5–10 questions, plain English, no jargon. multiSelect:true for checkboxes (maxSelections:3). ALWAYS ask about payload/document size. ALWAYS ask which specific tools/software they use (8–12 relevant options as checkboxes). ALWAYS ask which tools they CANNOT connect to third-party AI (data privacy). Ask about: data sources, output destination, trigger type, frequency.
+const CLARIFY = `You are an expert AI automation consultant. Generate 5–8 sharp, diagnostic clarifying questions for the use case below.
+
+MANDATORY QUESTIONS (always include these exact topics):
+1. FREQUENCY: "How many times per month will this workflow run?" — options: ["1–5 times","6–15 times","16–30 times","30+ times / daily"], singleSelect, required. This is ALWAYS question 1.
+2. PAYLOAD SIZE: Ask about document/data volume (options: the 4 PAYLOAD keys). Required.
+3. TOOLS IN USE: Checkboxes listing 8–12 specific tools relevant to their use case. multiSelect, allowOther.
+4. DATA PRIVACY: "Which of these tools is your organisation NOT allowed to connect to third-party AI?" — same list as tools. multiSelect.
+5. OUTPUT DESTINATION: Where does the final output land? (email, CRM, Slack, Google Doc, dashboard, etc.)
+
+OPTIONAL (add 1–3 of these if relevant to the use case):
+- Quality bar: "What level of output quality is required?" (Good enough to review → Publish-ready)
+- Stakeholders: "Who reviews or acts on the output?" 
+- Existing pain: "What breaks most often in the current manual process?"
+
+RULES: Plain English, no jargon. Do NOT ask about budget or company size — that comes from the intake. Do NOT repeat the use case back. Each question must unlock a real decision in the blueprint.
+
 User intake: INTAKE_DATA
-Return ONLY valid JSON: {"questions":[{"id":1,"question":"","options":[""],"multiSelect":false,"maxSelections":1,"allowOther":true,"required":true}]}`;
+Return ONLY valid JSON: {"questions":[{"id":1,"question":"","options":[""],"multiSelect":false,"allowOther":false,"required":true}]}`;
 
-const SYSPROMPT = `You are an expert, unbiased AI automation consultant using verified April 2026 intelligence.
+const SYSPROMPT = `You are an elite AI automation consultant producing blueprints for senior decision-makers. Every recommendation must be defensible, specific, and honest.
 
-=== INTERNAL REASONING PROTOCOL — MANDATORY 2-PASS REVIEW ===
+=== PHASE 0 — THINKING (mandatory, do this silently before writing JSON) ===
 
-Before producing your final JSON output, you MUST silently complete two internal review passes. Do not output the passes themselves — only the final corrected JSON.
+Before writing a single character of JSON, reason through these checkpoints:
 
-PASS 1 — DRAFT & STRESS-TEST:
-Draft the full blueprint internally. Then challenge every decision:
-- LLM assignments: Have you applied the Three Golden Rules strictly per task? Did you default to one LLM for everything (wrong) instead of assigning the best model per task?
-- Platform: Is the recommendation truly budget-first? Would a non-technical user realistically use n8n self-hosted?
-- Cost: Did you cross-reference the exact token pricing from the VERIFIED RATES table below? Did you check the cliff thresholds?
-- Tool gap: Did you actually cross-reference what tools the user said they HAVE vs what the flow REQUIRES?
-- ROI: Is the "worthIt" verdict honest, or did you default to true? Would a simpler Claude Skill/Gemini Gem achieve 80% of this at 10% of the cost?
-- detailedSteps: Does every step have a realistic promptTemplate? Did you leave any field empty?
+<thinking>
+1. ROUTING GATE — HARD RULES (apply first, no exceptions):
+   - If execPref is "One-time task" → executionApproach MUST be "Direct LLM Usage", platformRecommendation MUST be "None (Direct LLM)". NO Make/n8n/Zapier/Relevance AI.
+   - If execPref is "Repeatable workflow" AND the workflow has ≤2 tasks AND a simpler Claude Skill/Custom GPT achieves ≥70% value → set worthIt=false, recommend Claude Skill/Custom GPT as primary alternative.
 
-PASS 2 — SELF-CORRECTION:
-Fix every error identified in Pass 1. Verify:
-[ ] Every task has a DIFFERENT LLM assignment justified by the Three Golden Rules (not one-size-fits-all)
-[ ] Platform choice matches the user's technical level and budget from their intake
-[ ] cliffWarning is set when payload is "Very large" AND model is GPT-5.4 or Gemini 3.1 Pro
-[ ] toolsGap is populated if ANY required tool was not in the user's stated tool list
-[ ] All cost figures use the VERIFIED RATES below — not approximations
-[ ] billingNote is plain English, no jargon, explains the two separate bills clearly
-[ ] roiAssessment.alternatives contains at least 2 genuinely cheaper options
-[ ] Every detailedStep.promptTemplate is non-empty and specific to the task
+2. PERSONA BUDGET MATRIX — override platform selection with this:
+   | Persona            | Default tier |
+   | Student / Personal | Free only    |
+   | Startup / SMB      | Budget (<$20/mo) — Make.com or n8n self-hosted |
+   | Working Pro / SME  | Mid ($20–100/mo) — Relevance AI or n8n cloud |
+   | Enterprise / CXO   | Pro (no budget constraint) — best-fit platform |
+   Intent overrides persona: Personal/Learning always → Free tier regardless of persona.
 
-Only after completing both passes silently, output the final corrected JSON.
+3. LLM ASSIGNMENT — Three Golden Rules, per task, not per blueprint:
+   - RULE 1 WRITING: proposals, reports, emails, SOPs, legal, compliance, JDs, board decks → Claude Opus/Sonnet 4.6
+   - RULE 2 REAL-TIME: market signals, competitor intel, regulatory alerts, live pricing, salary data → Gemini 3.1 Pro (only model with Google Search grounding)
+   - RULE 3 DATA/SPEED: Excel, financial models, image gen, PowerPoint, CRM CSV, browser automation → GPT-5.4
+
+4. isUxSuggestion FLAG: For each task/step, set isUxSuggestion=true if this step primarily improves the human experience of the output (readability, formatting, personalisation, approval UX) rather than core automation logic. Max 1–2 steps per blueprint.
+
+5. TIME SAVINGS CALC: From the frequency answer (runs/month) and the use case, estimate manual time replaced. Formula: (manual_minutes_per_run × monthly_runs) / 60 = monthly_hours_saved. Express as "Saves ~X hours/month (assumes Y min manual per run × Z runs/mo)".
+
+6. PASS 1 STRESS-TEST — challenge every decision:
+   - Did I apply the Routing Gate? (One-time = no platform, no exceptions)
+   - Did I apply the Persona Budget Matrix?
+   - Does every task have a DIFFERENT, justified LLM?
+   - Is cliffWarning set for Very Large + GPT-5.4/Gemini Pro?
+   - Is every llmReason a punchy 1-sentence explaining the SPECIFIC capability used?
+   - Is estimatedTimeSaved populated with real math?
+   - Are toolsGap and toolsPrivacyConflict accurately cross-referenced?
+
+7. PASS 2 SELF-CORRECTION — fix every issue found in Pass 1, then output final JSON.
+</thinking>
 
 === VERIFIED APRIL 2026 PRICING RATES (use EXACTLY these figures) ===
-Claude Opus 4.6:      $5.00/1M input,  $25.00/1M output  — NO cliff
-Claude Sonnet 4.6:    $3.00/1M input,  $15.00/1M output  — NO cliff
-GPT-5.4:              $2.50/1M input,  $15.00/1M output  — 2× above 272K tokens
-GPT-5.4 Mini:         $0.75/1M input,  $4.50/1M output   — NO cliff
-GPT-5.4 Nano:         $0.20/1M input,  $1.25/1M output   — NO cliff
-Gemini 3.1 Pro:       $2.00/1M input,  $12.00/1M output  — 2× above 200K tokens
-Gemini 2.5 Flash:     $0.15/1M input,  $0.60/1M output   — NO cliff
-Gemini 3.1 Flash-Lite:$0.25/1M input,  $1.50/1M output   — NO cliff
-Exchange rate: 1 USD = ₹84 (all costs must be in ₹)
+Claude Opus 4.6:       $5.00/1M input,  $25.00/1M output  — NO cliff
+Claude Sonnet 4.6:     $3.00/1M input,  $15.00/1M output  — NO cliff
+GPT-5.4:               $2.50/1M input,  $15.00/1M output  — 2× above 272K tokens
+GPT-5.4 Mini:          $0.75/1M input,  $4.50/1M output   — NO cliff
+GPT-5.4 Nano:          $0.20/1M input,  $1.25/1M output   — NO cliff
+Gemini 3.1 Pro:        $2.00/1M input,  $12.00/1M output  — 2× above 200K tokens
+Gemini 2.5 Flash:      $0.15/1M input,  $0.60/1M output   — NO cliff
+Gemini 3.1 Flash-Lite: $0.25/1M input,  $1.50/1M output   — NO cliff
+Exchange rate: 1 USD = ₹84
 
-=== THREE GOLDEN RULES (per-task, not per-blueprint) ===
-RULE 1 — WRITING: proposals, reports, emails, SOPs, legal, compliance, JDs, content, board decks, cold outreach, investor memos → Claude Opus/Sonnet 4.6. Reason: highest Elo (1633 GDPval), lowest hallucination rate.
-RULE 2 — REAL-TIME INFO: competitor research, market signals, regulatory alerts, live pricing, news, salary benchmarks, travel, anything requiring today's data → Gemini 3.1 Pro. Reason: native Google Search grounding is a structural advantage no other model has.
-RULE 3 — DATA/IMAGES/SPEED: Excel analysis, financial modelling, image generation, PowerPoint/MS365, browser automation, CRM CSV, campaign data, rapid prototyping → GPT-5.4. Reason: Advanced Data Analysis, DALL-E, fastest time-to-first-token.
+=== PLATFORM SELECTION (apply Persona Budget Matrix first) ===
+Free:    None (Direct LLM) for one-time; n8n self-hosted or Make.com free tier for repeatable
+Budget:  Make.com Core ($9/mo) or n8n self-hosted (unlimited, free)
+Mid:     Relevance AI Team ($19/mo) or n8n cloud ($24/mo)
+Pro:     Relevance AI, Voiceflow, Vertex AI, or Langflow based on use-case fit
+NEVER recommend n8n Cloud to non-technical users (it requires DevOps comfort)
 
-PER-TASK LLM MAPPING:
-Claude  → proposals, emails, reports, JDs, policies, legal briefs, investor memos, annual reports, contracts, resumes, complex coding, RAG/MCP agents, risk assessment, brand voice
-Gemini  → real-time company research, competitor intel, regulatory alerts, salary benchmarking, scientific literature, video analysis (ONLY model with this), travel logistics, pricing intel
-GPT     → Excel/spreadsheets, financial modelling, campaign data, image generation, PowerPoint (MS365), browser automation, CRM CSV analysis, rapid prototyping
+=== TOOL GAP ANALYSIS (mandatory) ===
+Cross-reference tools user HAS vs tools the flow REQUIRES. Flag every gap with a free/cheap workaround. Flag privacy-blocked tools with a local/alternative.
 
-USER-TYPE → PRIMARY LLM DEFAULTS (override per task using Rules above):
-Engineering Student → Claude (coding/docs), Gemini (research)
-Commerce Student    → Claude (case studies), GPT (Excel)
-Science Student     → Gemini (lit review), Claude (thesis)
-Sales Pro           → Claude (proposals), Gemini (prospect research)
-Marketing Pro       → Claude (content), GPT (campaign data/images)
-Operations          → Claude (reports/SOPs), GPT (Excel)
-HR                  → Claude (JDs/policies), Gemini (salary benchmarks)
-Finance             → GPT (modelling), Claude (long docs)
-CEO/Founder         → Claude (writing/automation), Gemini (market intel)
-CTO/CIO             → Claude (architecture/MCP), GPT (computer use)
-CFO                 → Claude (compliance docs), GPT (financial modelling)
-Startup             → Claude (build/write), Gemini (research), GPT (models)
-Builder/Tinkerer    → Claude (agents/coding), GPT (speed)
+=== ROI HONESTY ===
+If a simpler alternative (Claude Skill, Gemini Gem, Custom GPT) achieves >70% value at <30% cost → set worthIt=false and name the alternative explicitly.
 
-EXECUTION TYPE LOGIC:
-One-time task       → Direct LLM Usage       (personal=simpler, no platform needed)
-Monthly repeatable  → LLM Skill/Prompt Template
-Weekly/daily        → Scheduled Automation
-5+ tasks, multi-system, autonomous → Full Autonomous Agent (production=robust)
-
-PLATFORM SELECTION (budget-first — this order matters):
-Non-technical + no budget → Make.com or Relevance AI (NEVER recommend n8n Cloud to non-technical users)
-Technical user            → n8n self-hosted (free, unlimited)
-AI agent focus            → Relevance AI
-Voice/chatbot             → Voiceflow
-LLM/RAG pipeline          → Langflow
-Enterprise GCP            → Vertex AI Agent Builder
-One-time task             → None (Direct LLM)
-
-TOOL GAP ANALYSIS (mandatory):
-1. Extract the exact list of tools the user said they HAVE (from clarifying answers)
-2. Extract the exact list of tools the user said they CANNOT connect (privacy-blocked)
-3. Cross-reference against every tool your flow REQUIRES
-4. Populate toolsGap for each required tool NOT in the user's list
-5. Populate toolsPrivacyConflict for each tool the user HAS but said is blocked
-6. If no gaps exist, leave arrays empty (do not fabricate gaps)
-
-ROI HONESTY RULE: Compare this full agentic flow against: (a) a Claude Skill/Project, (b) a Gemini Gem, (c) a Custom GPT, (d) a simple scheduler. If any simpler alternative achieves >70% of the value at <30% of the cost, set worthIt=false and explain clearly.
-
-Return ONLY the final corrected JSON after your silent 2-pass review:
-{"title":"max 8 words","executionApproach":"Direct LLM Usage|LLM Skill / Prompt Template|Scheduled Automation|Full Autonomous Agent","executionRationale":"one sentence","tasks":[{"number":1,"name":"","type":"Trigger|Data Fetch|Research|Analysis|Content Generation|Decision|Data Transform|Output","llm":"model or None","llmReason":"one phrase why — must cite which Golden Rule","platform":"","description":""}],"visualFlow":"[Task|LLM|Tool]→[Task|LLM|Tool]","llmDistribution":[{"llm":"Claude Sonnet 4.6","taskCount":1,"taskNames":[""]}],"platformRecommendation":"platform name","platformRationale":"why (budget reasoning)","llmRationale":"overall LLM strategy","freemiumVerdict":"Freemium sufficient|Freemium to start upgrade likely|Paid required","primaryLLM":"model name","billingNote":"plain English — explain two separate bills","cliffWarning":null,"toolAnalysis":{"toolsRequired":[],"toolsUserHas":[],"toolsBlocked":[],"toolsGap":[{"tool":"","reason":"","workaround":""}],"toolsPrivacyConflict":[{"tool":"","issue":"","workaround":""}]},"roiAssessment":{"worthIt":true,"summary":"","alternatives":[{"name":"","description":"","cost":"","bestFor":""}]},"detailedSteps":[{"taskNumber":1,"taskName":"","description":"","platform":"","llm":"","promptTemplate":"specific non-empty prompt for this exact task","input":"","output":"","connection":"","setupTime":""}]}`;
+Output ONLY valid JSON (no preamble, no explanation, no markdown fences):
+{"title":"max 8 words","executionApproach":"Direct LLM Usage|LLM Skill / Prompt Template|Scheduled Automation|Full Autonomous Agent","executionRationale":"one sentence","estimatedTimeSaved":"Saves ~X hours/month (assumes Y min manual per run × Z runs/mo)","tasks":[{"number":1,"name":"","type":"Trigger|Data Fetch|Research|Analysis|Content Generation|Decision|Data Transform|Output","llm":"model or None","llmReason":"1 punchy sentence: WHY this specific model for this specific task — cite the exact capability","platform":"","description":"","isUxSuggestion":false}],"visualFlow":"[Task|LLM|Tool]→[Task|LLM|Tool]","llmDistribution":[{"llm":"Claude Sonnet 4.6","taskCount":1,"taskNames":[""]}],"platformRecommendation":"platform name","platformRationale":"why — cite persona tier and budget","llmRationale":"overall LLM strategy in 1 sentence","freemiumVerdict":"Freemium sufficient|Freemium to start upgrade likely|Paid required","primaryLLM":"model name","billingNote":"plain English — two separate bills explained","cliffWarning":null,"toolAnalysis":{"toolsRequired":[],"toolsUserHas":[],"toolsBlocked":[],"toolsGap":[{"tool":"","reason":"","workaround":""}],"toolsPrivacyConflict":[{"tool":"","issue":"","workaround":""}]},"roiAssessment":{"worthIt":true,"summary":"","alternatives":[{"name":"","description":"","cost":"","bestFor":""}]},"detailedSteps":[{"taskNumber":1,"taskName":"","description":"","platform":"","llm":"","promptTemplate":"specific, non-empty prompt for this exact task","input":"","output":"","connection":"","setupTime":"","isUxSuggestion":false}]}`;
 
 function extractJSON(raw) {
   if (!raw || typeof raw !== "string") throw new Error("Empty response from AI");
   let text = raw.trim();
+
+  // Strip <thinking>...</thinking> blocks (and any other XML-like wrapper tags)
+  text = text.replace(/<thinking>[\s\S]*?<\/thinking>/gi, "").trim();
+  text = text.replace(/<[a-z_][a-z0-9_-]*>[\s\S]*?<\/[a-z_][a-z0-9_-]*>/gi, "").trim();
+
   // Strip markdown fences
   text = text.replace(/^```json\s*/i, "").replace(/^```\s*/i, "").replace(/```\s*$/g, "").trim();
-  // Try direct parse
+
+  // Try direct parse first
   try { return JSON.parse(text); } catch {}
-  // Find outermost JSON object
+
+  // Extract outermost JSON object — walk from first { to its matching }
+  const objStart = text.indexOf("{");
+  if (objStart !== -1) {
+    let depth = 0;
+    for (let i = objStart; i < text.length; i++) {
+      if (text[i] === "{") depth++;
+      else if (text[i] === "}") {
+        depth--;
+        if (depth === 0) {
+          try { return JSON.parse(text.slice(objStart, i + 1)); } catch {}
+          break;
+        }
+      }
+    }
+  }
+
+  // Fallback: last-resort slice between outermost { }
   const start = text.indexOf("{");
   const end = text.lastIndexOf("}");
   if (start !== -1 && end !== -1 && end > start) {
     try { return JSON.parse(text.slice(start, end + 1)); } catch {}
   }
-  // Find outermost JSON array
-  const aStart = text.indexOf("[");
-  const aEnd = text.lastIndexOf("]");
-  if (aStart !== -1 && aEnd !== -1 && aEnd > aStart) {
-    try { return JSON.parse(text.slice(aStart, aEnd + 1)); } catch {}
-  }
+
   throw new Error("Could not parse AI response as JSON. Please try again.");
 }
 
@@ -419,7 +430,7 @@ function toggleTheme() {
 
 let state = {
   screen: "intake",
-  intake: { userType:"", field:"", orgType:"", dept:"", company:"", role:"", useCase:"", usageIntent:"", execPref:"" },
+  intake: { userType:"", field:"", orgType:"", dept:"", company:"", role:"", useCase:"", usageIntent:"", execPref:"", uxOptimize:false },
   questions: [],
   answers: {},
   result: null,
@@ -447,7 +458,7 @@ function toggleAns(qId, opt, isMulti, max) {
   else {
     const cur = Array.isArray(prev[qId]) ? prev[qId] : [];
     if (cur.includes(opt)) prev[qId] = cur.filter(o => o !== opt);
-    else if (cur.length < max) prev[qId] = [...cur, opt];
+    else prev[qId] = [...cur, opt];
   }
   setState({ answers: prev });
 }
@@ -525,7 +536,7 @@ function manualSave() {
 function startFresh() {
   clearState();
   setState({
-    screen:"intake", intake:{userType:"",field:"",orgType:"",dept:"",company:"",role:"",useCase:"",usageIntent:"",execPref:""},
+    screen:"intake", intake:{userType:"",field:"",orgType:"",dept:"",company:"",role:"",useCase:"",usageIntent:"",execPref:"",uxOptimize:false},
     questions:[], answers:{}, result:null, showDetails:false, resultTab:"summary", refinement:"", error:"", loadStage:null, saveFlash:false, shareId:null, shareFlash:false, isReadOnly:false, activeFlowNode:null
   });
 }
@@ -683,7 +694,7 @@ function renderIntake() {
     <div style="margin-bottom:24px">
       <span class="lbl">4. What kind of solution are you looking for? *</span>
       <div style="display:grid;gap:7px">
-        ${[["⚡","One-time task","I need this done once, not repeatedly"],["🔄","Repeatable workflow","I want this to run on a schedule or trigger"],["🤖","Autonomous agent","I want AI to handle this end-to-end without me"]].map(([ic,lb,desc]) => `
+        ${[["⚡","One-time task","I need this done once, not repeatedly"],["🔄","Repeatable workflow","I want this to run on a schedule or trigger"]].map(([ic,lb,desc]) => `
           <div class="opt ${ui("execPref")===lb?"sel":""}" onclick="setIntake('execPref','${lb}')" style="flex-direction:column;align-items:flex-start;gap:2px">
             <div style="display:flex;align-items:center;gap:8px"><span style="font-size:16px">${ic}</span><span style="font-weight:500">${lb}</span></div>
             <span style="font-size:12px;color:var(--txt2);padding-left:24px">${desc}</span>
@@ -691,6 +702,18 @@ function renderIntake() {
       </div>
     </div>
 
+    <div style="margin-bottom:20px">
+      <label class="toggle-row" for="ux-optimize-toggle">
+        <div style="flex:1">
+          <p style="margin:0 0 2px;font-size:14px;font-weight:500;color:var(--txt)">Allow Blueprint AI to optimise my workflow for better User Experience</p>
+          <p style="margin:0;font-size:12px;color:var(--txt2)">When enabled, Blueprint factors in usability and handoff quality — not just automation speed.</p>
+        </div>
+        <div class="toggle-wrap">
+          <input type="checkbox" id="ux-optimize-toggle" ${state.intake.uxOptimize ? "checked" : ""} onchange="setIntake('uxOptimize', this.checked)" />
+          <span class="toggle-slider"></span>
+        </div>
+      </label>
+    </div>
     <button class="btn-p" onclick="handleIntake()" style="padding:14px">Analyse my use case →</button>
   </div>`;
 }
@@ -728,7 +751,7 @@ function renderQuestions() {
     <div style="margin-bottom:20px">
       <div style="display:flex;gap:7px;margin-bottom:9px;flex-wrap:wrap">
         <span class="pill" style="background:var(--pr-bg);color:var(--pr-tx)">${state.questions.length} questions · one round only</span>
-        <span class="pill" style="background:var(--ok-bg);color:var(--ok-tx)">Checkboxes = pick up to 5</span>
+        <span class="pill" style="background:var(--pr-bg);color:var(--pr-tx)">Checkboxes — select all that apply</span>
       </div>
       <h2 style="font-size:20px;font-weight:600;color:var(--txt);margin-bottom:5px">A few more details</h2>
       <p style="font-size:13px;color:var(--txt2);line-height:1.5">Including which tools you use and any privacy constraints — so your blueprint is realistic and actionable.</p>
@@ -785,6 +808,7 @@ function renderResult() {
         <a href="${AFFILIATE_LINKS[r.platformRecommendation]||'#'}" target="_blank" rel="noopener" class="pill" style="background:var(--surf);color:var(--txt);border:1px solid var(--bdr);text-decoration:none">🔧 ${r.platformRecommendation}</a>
         <a href="${AFFILIATE_LINKS[r.primaryLLM]||'#'}" target="_blank" rel="noopener" class="pill" style="background:var(--surf);color:var(--txt);border:1px solid var(--bdr);text-decoration:none">🤖 ${r.primaryLLM}</a>
         <span class="pill" style="background:${vInfo.bg};color:${vInfo.color}">${vInfo.label}</span>
+        ${r.estimatedTimeSaved ? `<span class="pill" style="background:var(--ok-bg);color:var(--ok-tx);border:1px solid var(--ok)">⏱ ${r.estimatedTimeSaved}</span>` : ""}
       </div>
     </div>`;
 
@@ -934,6 +958,7 @@ function renderResult() {
           <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
             ${t.llm && t.llm !== "None" ? `<span class="pill" style="background:${llmBg};color:${llmClr};border:1px solid ${llmClr}30;font-size:10px">🤖 ${t.llm}</span>${t.llmReason?`<span style="font-size:10px;color:var(--txt3);font-style:italic">${t.llmReason}</span>`:""}` : ""}
             ${t.platform ? `<span class="pill" style="background:var(--bg2);color:var(--txt2);font-size:10px">🔧 ${t.platform}</span>` : ""}
+            ${t.isUxSuggestion ? `<span class="ux-badge">💡 AI UX Suggestion</span>` : ""}
           </div>
         </div>
       </div>`;
@@ -1002,6 +1027,7 @@ function renderResult() {
         <div style="display:flex;gap:6px;flex-wrap:wrap">
           ${step.platform?`<span class="pill" style="background:var(--bg2);color:var(--txt2);font-size:11px">🔧 ${step.platform}</span>`:""}
           ${step.llm&&step.llm!=="None"?`<span class="pill" style="background:var(--bg2);color:var(--txt2);font-size:11px">🤖 ${step.llm}</span>`:""}
+          ${step.isUxSuggestion?`<span class="ux-badge">💡 AI UX Suggestion</span>`:""}
         </div>
         ${step.connection?`<p style="margin:8px 0 0;font-size:11px;color:var(--txt3)">→ ${step.connection}</p>`:""}
       </div>`).join("")}
@@ -1031,10 +1057,7 @@ function renderResult() {
     </div>
   </div>`;
 
-  // ── FAB ──────────────────────────────────────────────────────────────────
-  const fab = state.isReadOnly ? "" : `<button class="fab no-print" id="refine-fab" onclick="scrollToRefine()" title="Refine your blueprint">
-    🔁 <span>Refine</span>
-  </button>`;
+  // FAB removed — refinement box is inline under hero
 
   return `<div class="fu">
     <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:6px;flex-wrap:wrap" class="no-print">
@@ -1042,12 +1065,12 @@ function renderResult() {
       <button class="btn-s" style="font-size:12px;padding:7px 12px" onclick="window.print()">🖨 Print / Save PDF</button>
     </div>
     ${executiveSummary}
+    ${refinementBox}
     ${cliffWarn}
     ${tabBar}
     ${tabContent}
     ${refinementBox}
     <p style="text-align:center;font-size:11px;color:var(--txt3);margin-top:12px" class="no-print">Session auto-saved · Use the Save button in the header anytime</p>
-    ${fab}
   </div>`;
 }
 
@@ -1078,7 +1101,7 @@ function render() {
         el.classList.remove("tip-text");
         void el.offsetWidth; // force reflow to restart animation
         el.classList.add("tip-text");
-      }, 4500);
+      }, 6500);
     }
     return;
   }
