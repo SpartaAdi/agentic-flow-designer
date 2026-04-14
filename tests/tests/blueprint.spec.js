@@ -952,6 +952,221 @@ test.describe("Permalink — SSR /result/[id]", () => {
   });
 });
 
+// ─── SUITE 20: v6.0 — AUTONOMOUS AGENT MODE ─────────────────────────────────
+
+test.describe("v6.0 — Autonomous Agent Mode", () => {
+  test("'Autonomous agent' option is visible for Builder / Tinkerer", async ({ page }) => {
+    await page.goto(BASE_URL);
+    await page.locator(".opt").filter({ hasText: "Builder / Tinkerer" }).first().click();
+    await expect(page.locator(".opt").filter({ hasText: /Autonomous agent/i }).first()).toBeVisible();
+  });
+
+  test("'Autonomous agent' option is visible for Working Professional", async ({ page }) => {
+    await page.goto(BASE_URL);
+    await page.locator(".opt").filter({ hasText: "Working Professional" }).first().click();
+    await expect(page.locator(".opt").filter({ hasText: /Autonomous agent/i }).first()).toBeVisible();
+  });
+
+  test("'Autonomous agent' option is visible for CXO / Founder", async ({ page }) => {
+    await page.goto(BASE_URL);
+    await page.locator(".opt").filter({ hasText: "CXO / Founder" }).first().click();
+    await expect(page.locator(".opt").filter({ hasText: /Autonomous agent/i }).first()).toBeVisible();
+  });
+
+  test("'Autonomous agent' option is hidden for Student", async ({ page }) => {
+    await page.goto(BASE_URL);
+    await page.locator(".opt").filter({ hasText: "Student" }).first().click();
+    await expect(page.locator(".opt").filter({ hasText: /Autonomous agent/i })).toHaveCount(0);
+  });
+
+  test("'Autonomous agent' option is hidden for Other", async ({ page }) => {
+    await page.goto(BASE_URL);
+    await page.locator(".opt").filter({ hasText: "Other" }).first().click();
+    await expect(page.locator(".opt").filter({ hasText: /Autonomous agent/i })).toHaveCount(0);
+  });
+
+  test("selecting Autonomous agent marks it as selected", async ({ page }) => {
+    await page.goto(BASE_URL);
+    await page.locator(".opt").filter({ hasText: "Builder / Tinkerer" }).first().click();
+    const autonomousOpt = page.locator(".opt").filter({ hasText: /Autonomous agent/i }).first();
+    await autonomousOpt.click();
+    await expect(autonomousOpt).toHaveClass(/sel/);
+  });
+
+  test("autonomous mode full E2E — hero shows Fully Automated badge", async ({ page }) => {
+    test.setTimeout(TIMEOUT);
+    await page.goto(BASE_URL);
+    await page.locator(".opt").filter({ hasText: "Builder / Tinkerer" }).first().click();
+    await page.locator("textarea").first().fill("I want AI to fully automate my weekly competitor intelligence report end-to-end.");
+    await page.locator(".opt").filter({ hasText: /Production Use/i }).first().click();
+    await page.locator(".opt").filter({ hasText: /Autonomous agent/i }).first().click();
+    await page.locator("button").filter({ hasText: /Analyse/i }).first().click();
+    await page.waitForURL("**/questions", { timeout: 45000 });
+    await answerAllQuestions(page);
+    await page.locator("button").filter({ hasText: /Generate/i }).first().click();
+    await page.waitForURL("**/result**", { timeout: 60000 });
+    await page.waitForSelector("text=Your blueprint", { timeout: 30000 });
+    // Hero must contain "Fully Automated" badge when executionApproach === Full Autonomous Agent
+    const body = await page.textContent("body");
+    const isAutonomous =
+      (body ?? "").includes("Fully Automated") ||
+      (body ?? "").includes("Full Autonomous Agent");
+    expect(isAutonomous).toBeTruthy();
+  });
+
+  test("autonomous mode — flowchart shows '🤖 Fully automated' label", async ({ page }) => {
+    test.setTimeout(TIMEOUT);
+    await page.goto(BASE_URL);
+    await page.locator(".opt").filter({ hasText: "Builder / Tinkerer" }).first().click();
+    await page.locator("textarea").first().fill("Fully automated weekly competitor report.");
+    await page.locator(".opt").filter({ hasText: /Production Use/i }).first().click();
+    await page.locator(".opt").filter({ hasText: /Autonomous agent/i }).first().click();
+    await page.locator("button").filter({ hasText: /Analyse/i }).first().click();
+    await page.waitForURL("**/questions", { timeout: 45000 });
+    await answerAllQuestions(page);
+    await page.locator("button").filter({ hasText: /Generate/i }).first().click();
+    await page.waitForURL("**/result**", { timeout: 60000 });
+    await page.waitForSelector("text=Your blueprint", { timeout: 30000 });
+    await page.locator("[data-tab='architecture']").click();
+    const chart = page.locator("#flowchart-card");
+    await expect(chart).toBeVisible();
+    // If model returned "Full Autonomous Agent", the FlowChart renders the "Fully automated" badge
+    const body = await page.textContent("body");
+    if ((body ?? "").includes("Full Autonomous Agent")) {
+      await expect(page.locator("text=Fully automated").first()).toBeVisible();
+    }
+  });
+
+  test("switching from Autonomous agent back to Repeatable workflow clears selection", async ({ page }) => {
+    await page.goto(BASE_URL);
+    await page.locator(".opt").filter({ hasText: "Builder / Tinkerer" }).first().click();
+    const autonomousOpt = page.locator(".opt").filter({ hasText: /Autonomous agent/i }).first();
+    await autonomousOpt.click();
+    await expect(autonomousOpt).toHaveClass(/sel/);
+    // Switch to Repeatable
+    const repeatableOpt = page.locator(".opt").filter({ hasText: /Repeatable workflow/i }).first();
+    await repeatableOpt.click();
+    await expect(repeatableOpt).toHaveClass(/sel/);
+    await expect(autonomousOpt).not.toHaveClass(/sel/);
+  });
+
+  test("intake form still submits correctly with Autonomous agent selected", async ({ page }) => {
+    test.setTimeout(TIMEOUT);
+    await page.goto(BASE_URL);
+    await page.locator(".opt").filter({ hasText: "Builder / Tinkerer" }).first().click();
+    await page.locator("textarea").first().fill("Automate competitor tracking end-to-end with no manual steps.");
+    await page.locator(".opt").filter({ hasText: /Personal/i }).first().click();
+    await page.locator(".opt").filter({ hasText: /Autonomous agent/i }).first().click();
+    await page.locator("button").filter({ hasText: /Analyse/i }).first().click();
+    await page.waitForURL("**/questions", { timeout: 45000 });
+    await expect(page.locator("text=A few more details").first()).toBeVisible();
+  });
+});
+
+// ─── SUITE 21: v5.2 — LIVE PRICING FRESHNESS BADGE ──────────────────────────
+
+test.describe("v5.2 — Live Pricing Freshness Badge", () => {
+  test("/api/prices endpoint returns a valid response", async ({ page }) => {
+    const response = await page.request.get(`${BASE_URL}/api/prices`);
+    // Must not 500 — either 200 with data or 404/empty is acceptable
+    expect(response.status()).not.toBe(500);
+  });
+
+  test("/api/prices returns JSON with updatedAt when live data is cached", async ({ page }) => {
+    const response = await page.request.get(`${BASE_URL}/api/prices`);
+    if (response.status() === 200) {
+      const body = await response.json();
+      // If data is present, updatedAt must be a number and source must be valid
+      if (body?.updatedAt) {
+        expect(typeof body.updatedAt).toBe("number");
+        expect(["live", "fallback"]).toContain(body.source);
+      }
+    }
+  });
+
+  test("freshness badge appears in cost card when pricing data is available", async ({ page }) => {
+    test.setTimeout(TIMEOUT);
+    await runToResult(page);
+    // Fetch the prices API to know if data is available
+    const pricesRes = await page.request.get(`${BASE_URL}/api/prices`);
+    if (pricesRes.status() === 200) {
+      const pricesBody = await pricesRes.json().catch(() => null);
+      if (pricesBody?.updatedAt) {
+        // Badge should appear in the CostBreakdown card
+        const badge = page.locator("text=/Prices (just now|\\d+[hd] ago)/").first();
+        await expect(badge).toBeVisible({ timeout: 5000 });
+      }
+    }
+    // If no cached data, badge is absent — test passes silently
+  });
+
+  test("freshness badge has a title (tooltip) attribute", async ({ page }) => {
+    test.setTimeout(TIMEOUT);
+    await runToResult(page);
+    const pricesRes = await page.request.get(`${BASE_URL}/api/prices`);
+    if (pricesRes.status() === 200) {
+      const pricesBody = await pricesRes.json().catch(() => null);
+      if (pricesBody?.updatedAt) {
+        const badge = page.locator("[title*='Pricing']").first();
+        await expect(badge).toBeVisible({ timeout: 5000 });
+        const title = await badge.getAttribute("title");
+        expect(title?.length).toBeGreaterThan(0);
+      }
+    }
+  });
+
+  test("live badge shows checkmark prefix when source is live", async ({ page }) => {
+    test.setTimeout(TIMEOUT);
+    await runToResult(page);
+    const pricesRes = await page.request.get(`${BASE_URL}/api/prices`);
+    if (pricesRes.status() === 200) {
+      const body = await pricesRes.json().catch(() => null);
+      if (body?.source === "live" && body?.updatedAt) {
+        const badge = page.locator("text=/✓ Prices/").first();
+        await expect(badge).toBeVisible({ timeout: 5000 });
+      }
+    }
+  });
+
+  test("fallback badge shows clipboard prefix when source is fallback", async ({ page }) => {
+    test.setTimeout(TIMEOUT);
+    await runToResult(page);
+    const pricesRes = await page.request.get(`${BASE_URL}/api/prices`);
+    if (pricesRes.status() === 200) {
+      const body = await pricesRes.json().catch(() => null);
+      if (body?.source === "fallback" && body?.updatedAt) {
+        const badge = page.locator("text=/📋 Prices/").first();
+        await expect(badge).toBeVisible({ timeout: 5000 });
+      }
+    }
+  });
+
+  test("cost card label reads 'Cost breakdown' (not 'Monthly cost estimate')", async ({ page }) => {
+    test.setTimeout(TIMEOUT);
+    await runToResult(page);
+    await expect(page.locator("text=Cost breakdown").first()).toBeVisible();
+    await expect(page.locator("text=Monthly cost estimate")).toHaveCount(0);
+  });
+
+  test("assumption transparency accordion expands on click", async ({ page }) => {
+    test.setTimeout(TIMEOUT);
+    await runToResult(page);
+    const accordionBtn = page.locator("button").filter({ hasText: /How this estimate was calculated/i }).first();
+    await expect(accordionBtn).toBeVisible();
+    await accordionBtn.click();
+    await expect(page.locator("text=Assumptions used").first()).toBeVisible();
+  });
+
+  test("expanded assumptions show exchange rate line", async ({ page }) => {
+    test.setTimeout(TIMEOUT);
+    await runToResult(page);
+    const accordionBtn = page.locator("button").filter({ hasText: /How this estimate was calculated/i }).first();
+    await accordionBtn.click();
+    const text = await page.locator("text=Exchange rate").first().textContent();
+    expect(text).toContain("₹84");
+  });
+});
+
 // ─── HELPER FUNCTIONS ─────────────────────────────────────────────────────
 
 /**

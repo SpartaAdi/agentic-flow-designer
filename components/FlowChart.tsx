@@ -30,7 +30,7 @@ export default function FlowChart({ tasks, llmDistribution, isAutonomous = false
   });
 
   return (
-    <div className="card">
+    <div id="flowchart-card" className="card">
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
         <span className="lbl" style={{ margin: 0 }}>Workflow overview</span>
         {isAutonomous && (
@@ -45,12 +45,17 @@ export default function FlowChart({ tasks, llmDistribution, isAutonomous = false
           : 'Click any step to see details'}
       </p>
 
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7, alignItems: 'flex-start', marginBottom: 12 }}>
+      <div id="flowchart-nodes" style={{ display: 'flex', flexWrap: 'wrap', gap: 7, alignItems: 'flex-start', marginBottom: 12 }}>
         {tasks.map((t, i) => {
           const isActive = activeNode === t.number;
           return (
             <div key={t.number} style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
-              <div onClick={() => setActiveNode(isActive ? null : t.number)} style={nodeStyle(isActive)}>
+              <div
+                data-flow-node={t.number}
+                className={isActive ? 'active' : undefined}
+                onClick={() => setActiveNode(isActive ? null : t.number)}
+                style={nodeStyle(isActive)}
+              >
                 <div style={{ width: 6, height: 6, borderRadius: '50%', background: TCOL[t.type] || 'var(--pr)', margin: '0 auto 5px' }} />
                 <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--txt)', marginBottom: 2 }}>
                   {isAutonomous && <span style={{ marginRight: 3, fontSize: 9 }}>⚙</span>}
@@ -78,7 +83,7 @@ export default function FlowChart({ tasks, llmDistribution, isAutonomous = false
         const affLink = AFFILIATE_LINKS[t.llm];
         const verifyLink = VERIFY_LINKS[t.llm];
         return (
-          <div className="fu" style={{
+          <div className="fu fc-tooltip" style={{
             background: isAutonomous ? 'var(--ok-bg)' : 'var(--pr-bg)',
             border: '1px solid var(--bdr)',
             borderRadius: 'var(--r)', padding: '12px 14px', marginBottom: 10,

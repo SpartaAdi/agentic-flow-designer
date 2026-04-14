@@ -45,7 +45,7 @@ export default function CostBreakdown({ result, cost }: CostBreakdownProps) {
   return (
     <div className="card" style={{ marginBottom: 0 }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
-        <span className="lbl" style={{ margin: 0 }}>Monthly cost estimate</span>
+        <span className="lbl" style={{ margin: 0 }}>Cost breakdown</span>
         {pricingMeta && (
           <span
             title={pricingMeta.source === 'live' ? 'Pricing fetched from live cache' : 'Using curated fallback rates'}
@@ -69,19 +69,29 @@ export default function CostBreakdown({ result, cost }: CostBreakdownProps) {
       </div>
 
       <div className="row">
+        <span style={{ color: 'var(--txt2)' }}>Payload size</span>
+        <span style={{ fontWeight: 500, color: 'var(--txt2)' }}>{cost.payloadKey}</span>
+      </div>
+
+      <div className="row" data-cost-single>
+        <span style={{ color: 'var(--txt2)' }}>Single run cost</span>
+        <span style={{ fontWeight: 600 }}>{inr(cost.singleRunUSD)}/run</span>
+      </div>
+
+      <div className="row">
         <span style={{ color: 'var(--txt2)' }}>AI API (~{cost.runs} runs/mo)</span>
         <span style={{ fontWeight: 600 }}>{inr(cost.apiMonthlyUSD)}</span>
       </div>
 
       {/* Per-LLM breakdown (if multi-model) */}
       {cost.perLLM.length > 1 && cost.perLLM.map(p => (
-        <div key={p.llm} className="row" style={{ paddingLeft: 12 }}>
+        <div key={p.llm} className="row" style={{ paddingLeft: 12 }} data-cost-llm>
           <span style={{ fontSize: 11, color: 'var(--txt3)' }}>↳ {p.llm} ({p.taskCount} task{p.taskCount > 1 ? 's' : ''})</span>
-          <span style={{ fontSize: 11, color: 'var(--txt3)' }}>{inr(p.monthlyUSD)}</span>
+          <span style={{ fontSize: 11, color: 'var(--txt3)' }}>{inr(p.monthlyUSD)}/mo</span>
         </div>
       ))}
 
-      <div style={{ marginTop: 10, background: 'var(--bg2)', borderRadius: 'var(--r)', padding: 10, textAlign: 'center' }}>
+      <div data-cost-monthly style={{ marginTop: 10, background: 'var(--bg2)', borderRadius: 'var(--r)', padding: 10, textAlign: 'center' }}>
         <p style={{ fontSize: 10, color: 'var(--txt3)', marginBottom: 2 }}>Total estimated</p>
         <p style={{ fontSize: 22, fontWeight: 700, color: 'var(--txt)', margin: 0 }}>{inr(cost.totalMonthlyUSD)}</p>
         <p style={{ fontSize: 11, color: 'var(--txt3)', marginTop: 2 }}>≈ ${cost.totalMonthlyUSD.toFixed(2)}/mo</p>

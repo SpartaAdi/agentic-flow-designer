@@ -341,6 +341,7 @@ export default function ResultView({
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 6 }}>
               <p style={{ margin: 0, fontSize: 10, fontWeight: 600, color: 'var(--txt3)', textTransform: 'uppercase', letterSpacing: '.07em' }}>Prompt to use</p>
               <button
+                data-copy-idx={step.taskNumber}
                 className={`copy-btn${copied ? ' copied' : ''}`}
                 onClick={copyPrompt}
               >
@@ -413,6 +414,7 @@ export default function ResultView({
             {(['summary', 'architecture', 'guide'] as Tab[]).map(t => (
               <button
                 key={t}
+                data-tab={t}
                 className={`tab-btn${tab === t ? ' active' : ''}`}
                 role="tab"
                 aria-selected={tab === t}
