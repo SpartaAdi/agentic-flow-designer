@@ -46,17 +46,14 @@ test.describe("Page Load & Basic UI", () => {
     await page.goto(BASE_URL);
     const toggle = page.locator("button").filter({ hasText: /dark|light/i }).first();
     await expect(toggle).toBeVisible();
-    // Toggle to dark
     await toggle.click();
     await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
-    // Toggle back to light
     await toggle.click();
     await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
   });
 
   test("progress dots show 3 steps in header", async ({ page }) => {
     await page.goto(BASE_URL);
-    // Progress indicator should be visible
     const header = page.locator("header");
     await expect(header).toBeVisible();
   });
@@ -67,7 +64,6 @@ test.describe("Page Load & Basic UI", () => {
 test.describe("Form Validation — Required Fields", () => {
   test("shows error when submitting with no user type selected", async ({ page }) => {
     await page.goto(BASE_URL);
-    // Fill use case but skip user type
     await page.locator("textarea").first().fill("I want to automate my sales outreach");
     await page.locator(".opt").filter({ hasText: /Personal/i }).first().click();
     await page.locator(".opt").filter({ hasText: /One-time/i }).first().click();
@@ -101,7 +97,6 @@ test.describe("Form Validation — Required Fields", () => {
     await page.locator("textarea").first().fill("I want to create study notes automatically from my lecture recordings");
     await page.locator(".opt").filter({ hasText: /Personal/i }).first().click();
     await page.locator(".opt").filter({ hasText: /One-time/i }).first().click();
-    // Error should not be visible
     await expect(page.locator("text=Please complete all required fields")).not.toBeVisible();
   });
 });
@@ -135,17 +130,14 @@ test.describe("User Type — Conditional Fields", () => {
   test("Builder / Tinkerer shows no extra conditional fields", async ({ page }) => {
     await page.goto(BASE_URL);
     await page.locator(".opt").filter({ hasText: "Builder / Tinkerer" }).first().click();
-    // No dropdowns should appear for this type
     await expect(page.locator("text=Field of Study")).not.toBeVisible();
     await expect(page.locator("text=Organisation size")).not.toBeVisible();
   });
 
   test("switching user types resets conditional fields", async ({ page }) => {
     await page.goto(BASE_URL);
-    // First select Student
     await page.locator(".opt").filter({ hasText: "Student" }).first().click();
     await expect(page.locator("text=Field of Study").first()).toBeVisible();
-    // Switch to Builder
     await page.locator(".opt").filter({ hasText: "Builder / Tinkerer" }).first().click();
     await expect(page.locator("text=Field of Study")).not.toBeVisible();
   });
@@ -156,12 +148,13 @@ test.describe("User Type — Conditional Fields", () => {
 test.describe("Navigation", () => {
   test("Back button on questions screen returns to intake", async ({ page }) => {
     test.setTimeout(TIMEOUT);
-    await page.goto(BASE_URL);
     await fillIntakeForm(page, "Student");
-    // Wait for questions to load
-    await page.waitForSelector("text=A few more details", { timeout: 45000 });
+    // fillIntakeForm now waits for /questions — confirm heading visible
+    await expect(page.locator("text=A few more details").first()).toBeVisible();
     // Click back
     await page.locator("button").filter({ hasText: /Back/i }).first().click();
+    // Next.js router should navigate back to /
+    await page.waitForURL("**/", { timeout: 15000 });
     await expect(page.locator("h1, h2").first()).toBeVisible();
   });
 });
@@ -171,9 +164,7 @@ test.describe("Navigation", () => {
 test.describe("Questions Screen", () => {
   test("questions screen shows correct number of questions", async ({ page }) => {
     test.setTimeout(TIMEOUT);
-    await page.goto(BASE_URL);
     await fillIntakeForm(page, "Student");
-    await page.waitForSelector("text=A few more details", { timeout: 45000 });
     const qBadges = page.locator("[style*='border-radius:20px']").filter({ hasText: /Q\d/ });
     const count = await qBadges.count();
     expect(count).toBeGreaterThanOrEqual(5);
@@ -182,18 +173,13 @@ test.describe("Questions Screen", () => {
 
   test("multi-select options show checkboxes", async ({ page }) => {
     test.setTimeout(TIMEOUT);
-    await page.goto(BASE_URL);
     await fillIntakeForm(page, "Working Professional");
-    await page.waitForSelector("text=A few more details", { timeout: 45000 });
     await expect(page.locator("text=Select up to").first()).toBeVisible();
   });
 
   test("Other text input is present on all questions", async ({ page }) => {
     test.setTimeout(TIMEOUT);
-    await page.goto(BASE_URL);
     await fillIntakeForm(page, "Student");
-    await page.waitForSelector("text=A few more details", { timeout: 45000 });
-    // Each question should have an Other input
     const otherInputs = page.locator("input[placeholder*='Other']");
     const count = await otherInputs.count();
     expect(count).toBeGreaterThan(0);
@@ -201,22 +187,16 @@ test.describe("Questions Screen", () => {
 
   test("selecting up to 5 options in multi-select works", async ({ page }) => {
     test.setTimeout(TIMEOUT);
-    await page.goto(BASE_URL);
     await fillIntakeForm(page, "Working Professional");
-    await page.waitForSelector("text=A few more details", { timeout: 45000 });
-    // Find first multi-select question
     const multiLabel = page.locator("text=Select up to").first();
     if (await multiLabel.isVisible()) {
-      // Get the parent card
       const card = multiLabel.locator("..").locator("..");
       const opts = card.locator(".opt");
       const count = await opts.count();
-      // Click up to 5 options
       const clicks = Math.min(count, 5);
       for (let i = 0; i < clicks; i++) {
         await opts.nth(i).click();
       }
-      // Should show selected count
       const selectedText = card.locator("text=Selected:");
       if (await selectedText.isVisible()) {
         const text = await selectedText.textContent();
@@ -231,18 +211,14 @@ test.describe("Questions Screen", () => {
 test.describe("Full E2E — Happy Path (Real API)", () => {
   test("Student full flow — questions to blueprint result", async ({ page }) => {
     test.setTimeout(TIMEOUT);
-    await page.goto(BASE_URL);
     await fillIntakeForm(page, "Student");
-    await page.waitForSelector("text=A few more details", { timeout: 45000 });
-    // Answer a few questions
     const firstOpts = page.locator(".opt").first();
     if (await firstOpts.isVisible()) await firstOpts.click();
-    // Generate
     const genBtn = page.locator("button").filter({ hasText: /Generate/i }).first();
     await genBtn.click();
-    // Wait for result
-    await page.waitForSelector("text=Your blueprint", { timeout: 60000 });
-    // Verify key result sections
+    // Wait for Next.js router to land on /result, then wait for content
+    await page.waitForURL("**/result**", { timeout: 60000 });
+    await page.waitForSelector("text=Your blueprint", { timeout: 30000 });
     await expect(page.locator("text=Your blueprint").first()).toBeVisible();
     await expect(page.locator("text=Platform").first()).toBeVisible();
     await expect(page.locator("text=AI engine").first()).toBeVisible();
@@ -254,53 +230,43 @@ test.describe("Full E2E — Happy Path (Real API)", () => {
   test("Working Professional Sales flow — full E2E", async ({ page }) => {
     test.setTimeout(TIMEOUT);
     await page.goto(BASE_URL);
-    // Select Working Professional
     await page.locator(".opt").filter({ hasText: "Working Professional" }).first().click();
     await page.locator(".opt").filter({ hasText: "Startup" }).first().click();
-    // Select department
     const deptSelect = page.locator("select").first();
     await deptSelect.selectOption("Sales");
-    // Fill use case
     await page.locator("textarea").first().fill("I want to automatically research companies before my sales calls and receive a briefing 30 minutes before each meeting.");
-    // Select intent and execution
     await page.locator(".opt").filter({ hasText: /Production Use/i }).first().click();
     await page.locator(".opt").filter({ hasText: /Repeatable workflow/i }).first().click();
-    // Submit
     await page.locator("button").filter({ hasText: /Analyse/i }).first().click();
-    // Wait for questions
-    await page.waitForSelector("text=A few more details", { timeout: 45000 });
-    // Answer first option in each question
+    // Wait for Next.js router to navigate to /questions
+    await page.waitForURL("**/questions", { timeout: 45000 });
     await answerAllQuestions(page);
-    // Generate
     await page.locator("button").filter({ hasText: /Generate/i }).first().click();
-    // Wait for result
-    await page.waitForSelector("text=Your blueprint", { timeout: 60000 });
+    // Wait for Next.js router to land on /result
+    await page.waitForURL("**/result**", { timeout: 60000 });
+    await page.waitForSelector("text=Your blueprint", { timeout: 30000 });
     await expect(page.locator("text=Workflow overview").first()).toBeVisible();
     await expect(page.locator("text=Tools you need").first()).toBeVisible();
   });
 
   test("result screen shows INR cost estimate", async ({ page }) => {
     test.setTimeout(TIMEOUT);
-    await page.goto(BASE_URL);
     await fillIntakeForm(page, "Builder / Tinkerer");
-    await page.waitForSelector("text=A few more details", { timeout: 45000 });
     await answerAllQuestions(page);
     await page.locator("button").filter({ hasText: /Generate/i }).first().click();
-    await page.waitForSelector("text=Your blueprint", { timeout: 60000 });
-    // INR symbol should be present somewhere on the page
+    await page.waitForURL("**/result**", { timeout: 60000 });
+    await page.waitForSelector("text=Your blueprint", { timeout: 30000 });
     const pageContent = await page.textContent("body");
     expect(pageContent).toContain("₹");
   });
 
   test("detailed build guide expands on button click", async ({ page }) => {
     test.setTimeout(TIMEOUT);
-    await page.goto(BASE_URL);
     await fillIntakeForm(page, "Student");
-    await page.waitForSelector("text=A few more details", { timeout: 45000 });
     await answerAllQuestions(page);
     await page.locator("button").filter({ hasText: /Generate/i }).first().click();
-    await page.waitForSelector("text=Your blueprint", { timeout: 60000 });
-    // Click the detailed steps button
+    await page.waitForURL("**/result**", { timeout: 60000 });
+    await page.waitForSelector("text=Your blueprint", { timeout: 30000 });
     const stepsBtn = page.locator("button").filter({ hasText: /step-by-step/i }).first();
     await stepsBtn.click();
     await expect(page.locator("text=Step-by-step build guide").first()).toBeVisible();
@@ -325,7 +291,6 @@ test.describe("Result Screen Features", () => {
     await refineArea.fill("I also use HubSpot CRM and Slack is blocked by my company.");
     const refineBtn = page.locator("button").filter({ hasText: /Re-analyse/i }).first();
     await expect(refineBtn).not.toBeDisabled();
-    // Don't actually click to save API credits — just verify it's enabled
   });
 
   test("re-analyse button is disabled when refinement input is empty", async ({ page }) => {
@@ -352,7 +317,8 @@ test.describe("Result Screen Features", () => {
     await runToResult(page);
     const startOverBtn = page.locator("button").filter({ hasText: /Start over/i }).first();
     await startOverBtn.click();
-    // Should be back on intake screen
+    // Next.js router navigates back to /
+    await page.waitForURL("**/", { timeout: 15000 });
     await expect(page.locator("h1, h2").filter({ hasText: /Design/i }).first()).toBeVisible();
   });
 });
@@ -362,11 +328,9 @@ test.describe("Result Screen Features", () => {
 test.describe("Session Persistence", () => {
   test("resume session banner appears on revisit after completing blueprint", async ({ page }) => {
     test.setTimeout(TIMEOUT);
-    // Complete a full flow
     await runToResult(page);
-    // Reload the page
+    // Reload — Zustand persist rehydrates from localStorage
     await page.reload();
-    // Should see the resume banner or be on result screen
     const resumeOrResult = page.locator("text=Resume").or(page.locator("text=Your blueprint")).first();
     await expect(resumeOrResult).toBeVisible({ timeout: 10000 });
   });
@@ -374,7 +338,6 @@ test.describe("Session Persistence", () => {
   test("localStorage saves session data", async ({ page }) => {
     test.setTimeout(TIMEOUT);
     await runToResult(page);
-    // Check localStorage has our key
     const stored = await page.evaluate(() => localStorage.getItem("blueprint_v1"));
     expect(stored).not.toBeNull();
     const parsed = JSON.parse(stored);
@@ -402,8 +365,9 @@ test.describe("Edge Cases", () => {
     await page.locator(".opt").filter({ hasText: /Personal/i }).first().click();
     await page.locator(".opt").filter({ hasText: /One-time/i }).first().click();
     await page.locator("button").filter({ hasText: /Analyse/i }).first().click();
-    await page.waitForSelector("text=A few more details", { timeout: 45000 });
-    // Should show questions, not an error
+    // Wait for Next.js router to navigate to /questions
+    await page.waitForURL("**/questions", { timeout: 45000 });
+    // Verify heading rendered — not an error page
     await expect(page.locator("text=A few more details").first()).toBeVisible();
   });
 
@@ -415,13 +379,13 @@ test.describe("Edge Cases", () => {
     await page.locator(".opt").filter({ hasText: /Personal/i }).first().click();
     await page.locator(".opt").filter({ hasText: /One-time/i }).first().click();
     await page.locator("button").filter({ hasText: /Analyse/i }).first().click();
-    await page.waitForSelector("text=A few more details", { timeout: 45000 });
+    // Wait for Next.js router to navigate to /questions
+    await page.waitForURL("**/questions", { timeout: 45000 });
     await expect(page.locator("text=A few more details").first()).toBeVisible();
   });
 
   test("page is functional with JavaScript enabled", async ({ page }) => {
     await page.goto(BASE_URL);
-    // If JS was broken, options wouldn't be clickable
     const firstOpt = page.locator(".opt").first();
     await firstOpt.click();
     await expect(firstOpt).toHaveClass(/sel/);
@@ -475,7 +439,6 @@ test.describe("Performance", () => {
   });
 });
 
-
 // ─── SUITE 12: v1.1 — TABBED RESULTS ────────────────────────────────────────
 
 test.describe("v1.1 — Tabbed Blueprint Results", () => {
@@ -493,7 +456,6 @@ test.describe("v1.1 — Tabbed Blueprint Results", () => {
     await runToResult(page);
     const summaryTab = page.locator("[data-tab='summary']");
     await expect(summaryTab).toHaveClass(/active/);
-    // Default tab content should include Platform card
     await expect(page.locator("text=Platform").first()).toBeVisible();
   });
 
@@ -511,7 +473,6 @@ test.describe("v1.1 — Tabbed Blueprint Results", () => {
     await runToResult(page);
     await page.locator("[data-tab='guide']").click();
     await expect(page.locator("[data-tab='guide']")).toHaveClass(/active/);
-    // Steps section or fallback message should appear
     const hasSteps = await page.locator("text=Step-by-Step Guide").count() > 0
       || await page.locator(".step-card").count() > 0
       || await page.locator("text=not available").count() > 0;
@@ -521,7 +482,6 @@ test.describe("v1.1 — Tabbed Blueprint Results", () => {
   test("switching tabs does not reload or lose hero section", async ({ page }) => {
     test.setTimeout(TIMEOUT);
     await runToResult(page);
-    // Hero (executiveSummary) should always be visible regardless of tab
     await page.locator("[data-tab='architecture']").click();
     await expect(page.locator("text=Your blueprint").first()).toBeVisible();
     await page.locator("[data-tab='summary']").click();
@@ -531,11 +491,10 @@ test.describe("v1.1 — Tabbed Blueprint Results", () => {
   test("tab state resets to summary on Start Over and new generation", async ({ page }) => {
     test.setTimeout(TIMEOUT);
     await runToResult(page);
-    // Switch to architecture tab
     await page.locator("[data-tab='architecture']").click();
     await expect(page.locator("[data-tab='architecture']")).toHaveClass(/active/);
-    // Start over and go back to intake
     await page.locator("button").filter({ hasText: /Start over/i }).first().click();
+    await page.waitForURL("**/", { timeout: 15000 });
     await expect(page.locator("h1").filter({ hasText: /Design/i }).first()).toBeVisible();
   });
 });
@@ -552,10 +511,10 @@ test.describe("v1.2 — Dynamic Loading Tips", () => {
     await page.locator(".opt").filter({ hasText: /Personal/i }).first().click();
     await page.locator(".opt").filter({ hasText: /One-time/i }).first().click();
     await page.locator("button").filter({ hasText: /Analyse/i }).first().click();
-    await page.waitForSelector("text=A few more details", { timeout: 45000 });
+    // Wait for Next.js router to navigate to /questions
+    await page.waitForURL("**/questions", { timeout: 45000 });
     await page.locator(".opt").first().click().catch(() => {});
     await page.locator("button").filter({ hasText: /Generate/i }).first().click();
-    // During generation the loading tip container should appear
     const tipContainer = page.locator("text=While you wait");
     await expect(tipContainer).toBeVisible({ timeout: 5000 });
   });
@@ -569,10 +528,10 @@ test.describe("v1.2 — Dynamic Loading Tips", () => {
     await page.locator(".opt").filter({ hasText: /Personal/i }).first().click();
     await page.locator(".opt").filter({ hasText: /One-time/i }).first().click();
     await page.locator("button").filter({ hasText: /Analyse/i }).first().click();
-    await page.waitForSelector("text=A few more details", { timeout: 45000 });
+    // Wait for Next.js router to navigate to /questions
+    await page.waitForURL("**/questions", { timeout: 45000 });
     await page.locator(".opt").first().click().catch(() => {});
     await page.locator("button").filter({ hasText: /Generate/i }).first().click();
-    // Tip text should be non-empty
     const tipEl = page.locator("#loading-tip");
     await expect(tipEl).toBeVisible({ timeout: 5000 });
     const tipText = await tipEl.textContent();
@@ -582,7 +541,6 @@ test.describe("v1.2 — Dynamic Loading Tips", () => {
   test("tip interval is cleared after result renders (no memory leak)", async ({ page }) => {
     test.setTimeout(TIMEOUT);
     await runToResult(page);
-    // After result renders, _tipInterval should be null
     const intervalCleared = await page.evaluate(() => window._tipInterval === null || window._tipInterval === undefined);
     expect(intervalCleared).toBeTruthy();
   });
@@ -608,11 +566,9 @@ test.describe("v1.3 — Persistent Refinement FAB", () => {
   test("FAB click scrolls refinement section into view", async ({ page }) => {
     test.setTimeout(TIMEOUT);
     await runToResult(page);
-    // Switch to guide tab (so refine section is off-screen top)
     await page.locator("[data-tab='guide']").click();
     const fab = page.locator("#refine-fab");
     await fab.click();
-    // After click refinement section should be visible
     const refineSection = page.locator("#refinement-section");
     await expect(refineSection).toBeVisible({ timeout: 3000 });
   });
@@ -622,7 +578,6 @@ test.describe("v1.3 — Persistent Refinement FAB", () => {
     await runToResult(page);
     const fab = page.locator("#refine-fab");
     await fab.click();
-    // Wait for smooth scroll + focus timeout (300ms)
     await page.waitForTimeout(500);
     const refineArea = page.locator("#refineArea");
     await expect(refineArea).toBeFocused();
@@ -637,7 +592,6 @@ test.describe("v1.3 — Persistent Refinement FAB", () => {
   });
 });
 
-
 // ─── SUITE 15: v2.1 — 1-CLICK PROMPT COPY ──────────────────────────────────
 
 test.describe("v2.1 — 1-Click Prompt Copy", () => {
@@ -645,15 +599,11 @@ test.describe("v2.1 — 1-Click Prompt Copy", () => {
     test.setTimeout(TIMEOUT);
     await runToResult(page);
     await page.locator("[data-tab='guide']").click();
-    // At least one copy button should exist if steps have prompts
-    // (graceful: some blueprints may have 0 prompt templates)
     const copyBtns = page.locator("[data-copy-idx]");
     const count = await copyBtns.count();
-    // We cannot guarantee prompts exist in every blueprint, but step cards should
     const stepCards = page.locator(".step-card");
     const stepCount = await stepCards.count();
     if (stepCount > 0 && count > 0) {
-      // If prompts exist, each copy button must contain "Copy"
       await expect(copyBtns.first()).toContainText("Copy");
     }
   });
@@ -662,24 +612,16 @@ test.describe("v2.1 — 1-Click Prompt Copy", () => {
     test.setTimeout(TIMEOUT);
     await runToResult(page);
     await page.locator("[data-tab='guide']").click();
-
     const copyBtns = page.locator("[data-copy-idx]");
     const count = await copyBtns.count();
     if (count === 0) {
-      // No prompt templates in this blueprint — skip gracefully
       test.skip(true, "No prompt templates in generated blueprint");
       return;
     }
-
-    // Grant clipboard permission
     await page.context().grantPermissions(["clipboard-read", "clipboard-write"]);
-
     const firstBtn = copyBtns.first();
     await firstBtn.click();
-
-    // Button should immediately show "Copied!" text
     await expect(firstBtn).toContainText("Copied!", { timeout: 1000 });
-    // And gain the .copied CSS class
     await expect(firstBtn).toHaveClass(/copied/);
   });
 
@@ -687,22 +629,16 @@ test.describe("v2.1 — 1-Click Prompt Copy", () => {
     test.setTimeout(TIMEOUT);
     await runToResult(page);
     await page.locator("[data-tab='guide']").click();
-
     const copyBtns = page.locator("[data-copy-idx]");
     const count = await copyBtns.count();
     if (count === 0) {
       test.skip(true, "No prompt templates in generated blueprint");
       return;
     }
-
     await page.context().grantPermissions(["clipboard-read", "clipboard-write"]);
     const firstBtn = copyBtns.first();
     await firstBtn.click();
-
-    // Confirm Copied! is shown
     await expect(firstBtn).toContainText("Copied!", { timeout: 1000 });
-
-    // After 2.2 seconds the button should revert to "Copy"
     await page.waitForTimeout(2300);
     await expect(firstBtn).toContainText("Copy");
     await expect(firstBtn).not.toHaveClass(/copied/);
@@ -712,19 +648,15 @@ test.describe("v2.1 — 1-Click Prompt Copy", () => {
     test.setTimeout(TIMEOUT);
     await runToResult(page);
     await page.locator("[data-tab='guide']").click();
-
     const copyBtns = page.locator("[data-copy-idx]");
     const count = await copyBtns.count();
     if (count < 2) {
       test.skip(true, "Need at least 2 prompt templates to test independence");
       return;
     }
-
     await page.context().grantPermissions(["clipboard-read", "clipboard-write"]);
-    // Click first button only
     await copyBtns.first().click();
     await expect(copyBtns.first()).toContainText("Copied!", { timeout: 1000 });
-    // Second button should still show "Copy"
     await expect(copyBtns.nth(1)).toContainText("Copy");
     await expect(copyBtns.nth(1)).not.toHaveClass(/copied/);
   });
@@ -732,7 +664,6 @@ test.describe("v2.1 — 1-Click Prompt Copy", () => {
   test("copy button is not visible on Summary tab", async ({ page }) => {
     test.setTimeout(TIMEOUT);
     await runToResult(page);
-    // Default tab is summary — no copy buttons should be rendered
     const copyBtns = page.locator("[data-copy-idx]");
     await expect(copyBtns).toHaveCount(0);
   });
@@ -741,37 +672,28 @@ test.describe("v2.1 — 1-Click Prompt Copy", () => {
     test.setTimeout(TIMEOUT);
     await runToResult(page);
     await page.locator("[data-tab='guide']").click();
-
     const copyBtns = page.locator("[data-copy-idx]");
     const count = await copyBtns.count();
     if (count === 0) {
       test.skip(true, "No prompt templates in generated blueprint");
       return;
     }
-
     await page.context().grantPermissions(["clipboard-read", "clipboard-write"]);
     const firstBtn = copyBtns.first();
-
-    // Get the rendered prompt text from the monospace paragraph sibling
     const promptText = await firstBtn
       .locator("xpath=../following-sibling::p[contains(@style,'monospace')]")
       .textContent()
       .catch(() => null);
-
     await firstBtn.click();
     await expect(firstBtn).toContainText("Copied!", { timeout: 1000 });
-
-    // Verify clipboard content matches the displayed prompt
     const clipboardText = await page.evaluate(() => navigator.clipboard.readText());
     if (promptText) {
       expect(clipboardText.trim()).toBe(promptText.trim());
     } else {
-      // If we couldn't read the prompt text from DOM, just verify clipboard is non-empty
       expect(clipboardText.trim().length).toBeGreaterThan(0);
     }
   });
 });
-
 
 // ─── SUITE 16: v3.2 — AFFILIATE LINKS ────────────────────────────────────────
 
@@ -779,7 +701,6 @@ test.describe("v3.2 — Affiliate Links", () => {
   test("affiliate links are rendered on result screen", async ({ page }) => {
     test.setTimeout(TIMEOUT);
     await runToResult(page);
-    // Affiliate links should appear on the Summary tab (default)
     const affLinks = page.locator("a.aff-link, a[href*='utm_source=blueprint']");
     const count = await affLinks.count();
     expect(count).toBeGreaterThan(0);
@@ -788,7 +709,6 @@ test.describe("v3.2 — Affiliate Links", () => {
   test("platform recommendation is an affiliate link", async ({ page }) => {
     test.setTimeout(TIMEOUT);
     await runToResult(page);
-    // The platform card should contain an anchor with affiliate param
     const platLink = page.locator(".card a[href*='utm_source=blueprint']").first();
     await expect(platLink).toBeVisible();
     const href = await platLink.getAttribute("href");
@@ -814,7 +734,6 @@ test.describe("v3.2 — Affiliate Links", () => {
   test("hero LLM pill is an affiliate link", async ({ page }) => {
     test.setTimeout(TIMEOUT);
     await runToResult(page);
-    // Hero section pills — LLM pill should be an anchor
     const llmPill = page.locator("a[href*='utm_source=blueprint']").filter({ hasText: /claude|gemini|gpt/i }).first();
     await expect(llmPill).toBeVisible();
   });
@@ -823,7 +742,6 @@ test.describe("v3.2 — Affiliate Links", () => {
     test.setTimeout(TIMEOUT);
     await runToResult(page);
     await page.locator("[data-tab='architecture']").click();
-    // LLM distribution legend items should be anchor links
     const legendLinks = page.locator("#flowchart-card a.aff-link, #flowchart-card a.pill");
     const count = await legendLinks.count();
     expect(count).toBeGreaterThan(0);
@@ -856,7 +774,6 @@ test.describe("v4.2 — Interactive Flowchart", () => {
     await page.locator("[data-tab='architecture']").click();
     const firstNode = page.locator("[data-flow-node]").first();
     await firstNode.click();
-    // Tooltip should now be visible inside the active node
     const tooltip = page.locator(".fc-tooltip").first();
     await expect(tooltip).toBeVisible({ timeout: 2000 });
   });
@@ -866,10 +783,8 @@ test.describe("v4.2 — Interactive Flowchart", () => {
     await runToResult(page);
     await page.locator("[data-tab='architecture']").click();
     const firstNode = page.locator("[data-flow-node]").first();
-    // Open
     await firstNode.click();
     await expect(page.locator(".fc-tooltip").first()).toBeVisible({ timeout: 2000 });
-    // Close — click again
     await firstNode.click();
     await expect(page.locator(".fc-tooltip")).toHaveCount(0, { timeout: 2000 });
   });
@@ -887,7 +802,6 @@ test.describe("v4.2 — Interactive Flowchart", () => {
     test.setTimeout(TIMEOUT);
     await runToResult(page);
     await page.locator("[data-tab='architecture']").click();
-    // Click nodes until we find one with an LLM tooltip
     const nodes = page.locator("[data-flow-node]");
     const count = await nodes.count();
     let foundLLM = false;
@@ -899,11 +813,9 @@ test.describe("v4.2 — Interactive Flowchart", () => {
         if (text && (text.includes("Claude") || text.includes("Gemini") || text.includes("GPT"))) {
           foundLLM = true;
         }
-        // Collapse before next click
         await nodes.nth(i).click();
       }
     }
-    // At least one node should have an LLM in its tooltip
     expect(foundLLM).toBeTruthy();
   });
 
@@ -914,10 +826,9 @@ test.describe("v4.2 — Interactive Flowchart", () => {
     await page.locator("[data-tab='architecture']").click();
     const chart = page.locator("#flowchart-card");
     await expect(chart).toBeVisible();
-    // flowchart-nodes container should not exceed viewport width
     const box = await page.locator("#flowchart-nodes").boundingBox();
     if (box) {
-      expect(box.width).toBeLessThanOrEqual(410); // allow small overflow for scrollable container
+      expect(box.width).toBeLessThanOrEqual(410);
     }
   });
 
@@ -935,7 +846,6 @@ test.describe("v5.1 — Enhanced Cost Breakdown", () => {
   test("cost breakdown card renders on summary tab", async ({ page }) => {
     test.setTimeout(TIMEOUT);
     await runToResult(page);
-    // data-cost-monthly should be present in summary tab
     const monthlyCost = page.locator("[data-cost-monthly]").first();
     await expect(monthlyCost).toBeVisible();
   });
@@ -954,7 +864,6 @@ test.describe("v5.1 — Enhanced Cost Breakdown", () => {
     await runToResult(page);
     const llmCosts = page.locator("[data-cost-llm]");
     const count = await llmCosts.count();
-    // At least one per-LLM row should exist
     expect(count).toBeGreaterThan(0);
   });
 
@@ -970,8 +879,6 @@ test.describe("v5.1 — Enhanced Cost Breakdown", () => {
   test("frequency/run label is shown", async ({ page }) => {
     test.setTimeout(TIMEOUT);
     await runToResult(page);
-    // The cost card shows run frequency label — look for "runs" or "run"
-    const costCard = page.locator("[data-cost-monthly]").locator("..").locator("..");
     const text = await page.locator("[data-cost-monthly]").textContent();
     expect(text?.toLowerCase()).toMatch(/run|mo/);
   });
@@ -998,16 +905,66 @@ test.describe("v5.1 — Enhanced Cost Breakdown", () => {
   });
 });
 
+// ─── SUITE 19: PERMALINK — SSR /result/[id] ──────────────────────────────────
+// New suite for the Next.js SSR permalink route. Previously the app used ?id=UUID.
+
+test.describe("Permalink — SSR /result/[id]", () => {
+  test("invalid ID at /result/fake returns 404 message", async ({ page }) => {
+    await page.goto(`${BASE_URL}/result/fake`);
+    await expect(page.locator("text=Blueprint not found").first()).toBeVisible();
+  });
+
+  test("expired or unknown UUID returns 404 message", async ({ page }) => {
+    await page.goto(`${BASE_URL}/result/00000000-0000-0000-0000-000000000000`);
+    await expect(page.locator("text=Blueprint not found").first()).toBeVisible();
+  });
+
+  test("404 page has a link back to home", async ({ page }) => {
+    await page.goto(`${BASE_URL}/result/fake`);
+    const homeLink = page.locator("a", { hasText: /Build a new blueprint/i });
+    await expect(homeLink).toBeVisible();
+    await homeLink.click();
+    await page.waitForURL("**/", { timeout: 10000 });
+    await expect(page.locator("textarea").first()).toBeVisible();
+  });
+
+  test("legacy ?id= query param redirects to /result/[id]", async ({ page }) => {
+    // App must redirect /?id=UUID → /result/UUID
+    const testId = "00000000-0000-0000-0000-000000000000";
+    await page.goto(`${BASE_URL}/?id=${testId}`);
+    await page.waitForURL(`**/result/${testId}`, { timeout: 10000 });
+  });
+
+  test("saved blueprint is accessible at its permalink URL", async ({ page }) => {
+    test.setTimeout(TIMEOUT);
+    await runToResult(page);
+    // Click Share to generate a real permalink
+    const shareBtn = page.locator("header").locator("button").filter({ hasText: /Share/i }).first();
+    await shareBtn.click();
+    // After share the URL should update to /result/[uuid]
+    await page.waitForURL(/\/result\/[0-9a-f-]{36}/, { timeout: 15000 });
+    const shareUrl = page.url();
+    // Verify the permalink loads in a fresh tab (SSR)
+    const newPage = await page.context().newPage();
+    await newPage.goto(shareUrl);
+    await expect(newPage.locator("text=Your blueprint").first()).toBeVisible({ timeout: 20000 });
+    await newPage.close();
+  });
+});
+
 // ─── HELPER FUNCTIONS ─────────────────────────────────────────────────────
 
+/**
+ * Fills and submits the intake form, then waits for the Next.js router
+ * to complete navigation to /questions.
+ * After this function returns, the caller is confirmed on the /questions page.
+ */
 async function fillIntakeForm(page, userType) {
-  await page.goto("https://agentic-flow-designer.vercel.app");
+  await page.goto(BASE_URL);
   await page.locator(".opt").filter({ hasText: userType }).first().click();
-  // Handle student field of study
   if (userType === "Student") {
     await page.locator(".opt").filter({ hasText: "Engineering & CS" }).first().click();
   }
-  // Handle Working Professional extras
   if (userType === "Working Professional") {
     try {
       await page.locator(".opt").filter({ hasText: "Startup" }).first().click({ timeout: 2000 });
@@ -1019,10 +976,11 @@ async function fillIntakeForm(page, userType) {
   await page.locator(".opt").filter({ hasText: /Production Use/i }).first().click();
   await page.locator(".opt").filter({ hasText: /Repeatable workflow/i }).first().click();
   await page.locator("button").filter({ hasText: /Analyse/i }).first().click();
+  // Wait for Next.js App Router to navigate to /questions
+  await page.waitForURL("**/questions", { timeout: 45000 });
 }
 
 async function answerAllQuestions(page) {
-  // Click the first available option for each question card
   const cards = page.locator(".card");
   const count = await cards.count();
   for (let i = 0; i < count; i++) {
@@ -1030,15 +988,22 @@ async function answerAllQuestions(page) {
     const opts = card.locator(".opt");
     const optCount = await opts.count();
     if (optCount > 0) {
-      await opts.first().click().catch(() => {}); // ignore if not clickable
+      await opts.first().click().catch(() => {});
     }
   }
 }
 
+/**
+ * Runs the full happy-path flow: intake → questions → result.
+ * After this function returns, the caller is on the /result page
+ * with the blueprint content fully rendered.
+ */
 async function runToResult(page) {
   await fillIntakeForm(page, "Student");
-  await page.waitForSelector("text=A few more details", { timeout: 45000 });
   await answerAllQuestions(page);
   await page.locator("button").filter({ hasText: /Generate/i }).first().click();
-  await page.waitForSelector("text=Your blueprint", { timeout: 60000 });
+  // Wait for the Next.js router to navigate to /result
+  await page.waitForURL("**/result**", { timeout: 60000 });
+  // Then wait for the blueprint content to fully render
+  await page.waitForSelector("text=Your blueprint", { timeout: 30000 });
 }
