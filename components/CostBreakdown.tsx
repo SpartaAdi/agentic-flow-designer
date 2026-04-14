@@ -1,25 +1,65 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { PLATDATA, LLMDATA, PAYLOAD, USD } from '../lib/constants';
 import type { CostResult } from '../lib/calcCost';
 import type { BlueprintResult } from '../lib/state';
+
+interface PricingMeta {
+  updatedAt: number;        // Unix ms
+  source: 'live' | 'fallback';
+}
 
 interface CostBreakdownProps {
   result: BlueprintResult;
   cost: CostResult;
 }
 
+function formatAge(ms: number): string {
+  const hours = Math.floor((Date.now() - ms) / 3600000);
+  if (hours < 1) return 'just now';
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  return `${days}d ago`;
+}
+
 export default function CostBreakdown({ result, cost }: CostBreakdownProps) {
   const [showAssumptions, setShowAssumptions] = useState(false);
+  const [pricingMeta, setPricingMeta] = useState<PricingMeta | null>(null);
+
   const platData = PLATDATA[result.platformRecommendation];
   const llmData = LLMDATA[result.primaryLLM];
   const payloadData = PAYLOAD[cost.payloadKey];
 
   const inr = (usd: number) => '₹' + Math.round(usd * USD).toLocaleString('en-IN');
 
+  // Fetch pricing freshness metadata on mount
+  useEffect(() => {
+    fetch('/api/prices')
+      .then(r => r.ok ? r.json() : null)
+      .then((data: { updatedAt: number; source: 'live' | 'fallback' } | null) => {
+        if (data?.updatedAt) setPricingMeta({ updatedAt: data.updatedAt, source: data.source });
+      })
+      .catch(() => { /* silent — badge simply won't show */ });
+  }, []);
+
   return (
     <div className="card" style={{ marginBottom: 0 }}>
-      <span className="lbl">Monthly cost estimate</span>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+        <span className="lbl" style={{ margin: 0 }}>Monthly cost estimate</span>
+        {pricingMeta && (
+          <span
+            title={pricingMeta.source === 'live' ? 'Pricing fetched from live cache' : 'Using curated fallback rates'}
+            style={{
+              fontSize: 10, fontWeight: 500, padding: '2px 7px',
+              borderRadius: 20, cursor: 'default',
+              background: pricingMeta.source === 'live' ? 'var(--ok-bg)' : 'var(--bg3)',
+              color: pricingMeta.source === 'live' ? 'var(--ok-tx)' : 'var(--txt3)',
+            }}
+          >
+            {pricingMeta.source === 'live' ? '✓' : '📋'} Prices {formatAge(pricingMeta.updatedAt)}
+          </span>
+        )}
+      </div>
 
       <div className="row">
         <span style={{ color: 'var(--txt2)' }}>Platform</span>
@@ -47,7 +87,7 @@ export default function CostBreakdown({ result, cost }: CostBreakdownProps) {
         <p style={{ fontSize: 11, color: 'var(--txt3)', marginTop: 2 }}>≈ ${cost.totalMonthlyUSD.toFixed(2)}/mo</p>
       </div>
 
-      {/* Assumption transparency card */}
+      {/* Assumption transparency */}
       <button
         onClick={() => setShowAssumptions(!showAssumptions)}
         style={{ marginTop: 10, width: '100%', textAlign: 'left', background: 'transparent', border: 'none', cursor: 'pointer', fontSize: 12, color: 'var(--pr-tx)', fontFamily: 'inherit', padding: 0 }}

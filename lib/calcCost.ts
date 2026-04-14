@@ -1,6 +1,22 @@
 import { LLMDATA, PLATDATA, PAYLOAD, USD } from './constants';
 import type { BlueprintResult, Question } from './state';
 
+// ── Live pricing types (matches /api/prices response + pricing-data.json) ──
+export type LiveRates = Record<string, {
+  in: number; out: number; cliff: number | null; note: string;
+}>;
+
+/** Merge live rates from Redis over the static LLMDATA constant.
+ *  Any model not present in overrideRates falls back to LLMDATA. */
+function effectiveRates(overrideRates?: LiveRates): typeof LLMDATA {
+  if (!overrideRates) return LLMDATA;
+  const merged: typeof LLMDATA = { ...LLMDATA };
+  for (const [model, rates] of Object.entries(overrideRates)) {
+    if (merged[model]) merged[model] = { ...merged[model], ...rates };
+  }
+  return merged;
+}
+
 export interface PerLLMCost {
   llm: string;
   taskCount: number;
@@ -11,26 +27,19 @@ export interface PerLLMCost {
 }
 
 export interface CostResult {
-  // Single run
   singleRunUSD: number;
   singleRunINR: number;
-  // Monthly API
   apiMonthlyUSD: number;
   apiMonthlyINR: number;
-  // Monthly platform
   platMonthlyUSD: number;
   platMonthlyINR: number;
-  // Grand total
   totalMonthlyUSD: number;
   totalMonthlyINR: number;
-  // Per-LLM breakdown
   perLLM: PerLLMCost[];
-  // Meta
   runs: number;
   buf: number;
   payloadKey: string;
   freqFromUser: boolean;
-  // Legacy compat
   usd: number;
   inr: number;
 }
@@ -44,15 +53,14 @@ function runsFromApproach(approach: string): number {
 export function calcCost(
   result: BlueprintResult,
   answers: Record<number, string | string[]>,
-  questions: Question[]
+  questions: Question[],
+  overrideRates?: LiveRates,
 ): CostResult | null {
-  const primaryLlmData = LLMDATA[result.primaryLLM];
+  const rates = effectiveRates(overrideRates);
+  const primaryLlmData = rates[result.primaryLLM];
   if (!primaryLlmData) return null;
 
-  // Detect payload size from question answers
-  const pq = questions.find(q =>
-    /page|size|document|long/i.test(q.question)
-  );
+  const pq = questions.find(q => /page|size|document|long/i.test(q.question));
   const pAns = pq
     ? (Array.isArray(answers[pq.id]) ? (answers[pq.id] as string[])[0] : answers[pq.id] as string)
     : null;
@@ -60,7 +68,6 @@ export function calcCost(
   const payload = PAYLOAD[payloadKey];
   const freqFromUser = !!pAns && !!PAYLOAD[pAns];
 
-  // Detect frequency from answers
   const freqQ = questions.find(q =>
     /how many times|frequency|per month|runs/i.test(q.question)
   );
@@ -74,14 +81,14 @@ export function calcCost(
     'Weekly (4–5 times)': 23,
     'Daily or multiple times a week': 35,
   };
-  const runs = (freqAns && FREQ_MAP[freqAns]) ? FREQ_MAP[freqAns] : runsFromApproach(result.executionApproach);
+  const runs = (freqAns && FREQ_MAP[freqAns])
+    ? FREQ_MAP[freqAns]
+    : runsFromApproach(result.executionApproach);
 
-  // Thinking token buffer for non-Claude models with reasoning
   const buf = 1.0;
 
-  // Per-LLM breakdown
   const perLLM: PerLLMCost[] = (result.llmDistribution || []).map(d => {
-    const llmData = LLMDATA[d.llm];
+    const llmData = rates[d.llm];
     if (!llmData) return null;
     const fraction = d.taskCount / Math.max(result.tasks?.length || 1, 1);
     const singleRunUSD =
@@ -97,13 +104,11 @@ export function calcCost(
     };
   }).filter(Boolean) as PerLLMCost[];
 
-  // Total API cost
   const singleRunUSD =
     (payload.in / 1e6) * primaryLlmData.in +
     (payload.out / 1e6) * primaryLlmData.out;
   const apiMonthlyUSD = singleRunUSD * runs * buf;
 
-  // Platform cost
   const platData = PLATDATA[result.platformRecommendation];
   const platMonthlyUSD =
     result.freemiumVerdict === 'Freemium sufficient' ? 0 : (platData?.paidUSD || 0);
@@ -124,7 +129,6 @@ export function calcCost(
     buf,
     payloadKey,
     freqFromUser,
-    // Legacy
     usd: totalMonthlyUSD,
     inr: totalMonthlyUSD * USD,
   };

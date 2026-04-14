@@ -54,8 +54,15 @@ export default function ResultView({
   };
 
   // ── Executive Summary Hero ────────────────────────────────────────────
+  const isAutonomous = result.executionApproach === 'Full Autonomous Agent';
+
   const hero = (
-    <div style={{ background: 'var(--pr-bg)', border: '1px solid var(--bdr)', borderRadius: 'var(--rl)', padding: 20, marginBottom: 14, boxShadow: 'var(--sh)' }}>
+    <div style={{
+      background: isAutonomous ? 'var(--ok-bg)' : 'var(--pr-bg)',
+      border: '1px solid var(--bdr)',
+      borderLeft: isAutonomous ? '4px solid var(--ok)' : '1px solid var(--bdr)',
+      borderRadius: 'var(--rl)', padding: 20, marginBottom: 14, boxShadow: 'var(--sh)',
+    }}>
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap', marginBottom: 14 }}>
         <div style={{ flex: 1, minWidth: 200 }}>
           <span className="lbl" style={{ color: 'var(--pr-tx)' }}>Your blueprint</span>
@@ -83,6 +90,9 @@ export default function ResultView({
             : <>🤖 {result.primaryLLM}</>}
         </span>
         <span className="pill" style={{ background: vInfo.bg, color: vInfo.color }}>{vInfo.label}</span>
+        {isAutonomous && (
+          <span className="pill" style={{ background: 'var(--ok)', color: '#fff' }}>🤖 Fully Automated</span>
+        )}
         {result.estimatedTimeSaved && (
           <span className="pill" style={{ background: 'var(--ok-bg)', color: 'var(--ok-tx)' }}>⏱ Saves {result.estimatedTimeSaved}</span>
         )}
@@ -200,7 +210,7 @@ export default function ResultView({
       {/* Disclaimer */}
       <div style={{ background: 'var(--bg2)', border: '1px solid var(--bdr)', borderRadius: 'var(--r)', padding: '9px 13px', marginBottom: 16 }}>
         <p style={{ margin: 0, fontSize: 11, color: 'var(--txt3)', lineHeight: 1.5 }}>
-          ⚠ Cost estimates are approximate. Platform pricing verified April 2026 — verify at: make.com · n8n.io · zapier.com · relevanceai.com · anthropic.com · openai.com · ai.google.dev · USD/INR at ₹84 (verify current rate)
+          ⚠ Cost estimates are approximate. Pricing refreshed daily from curated source — verify at: make.com · n8n.io · zapier.com · relevanceai.com · anthropic.com · openai.com · ai.google.dev · USD/INR at ₹84 (verify current rate)
         </p>
       </div>
     </div>
@@ -209,7 +219,7 @@ export default function ResultView({
   // ── Tab 2: Workflow Architecture ──────────────────────────────────────
   const tabArchitecture = (
     <div className="fu">
-      <FlowChart tasks={result.tasks || []} llmDistribution={result.llmDistribution || []} />
+      <FlowChart tasks={result.tasks || []} llmDistribution={result.llmDistribution || []} isAutonomous={isAutonomous} />
 
       {/* Task breakdown */}
       <div className="card">

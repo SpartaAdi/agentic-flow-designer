@@ -1,6 +1,19 @@
 // ── Exchange rate ──────────────────────────────────────────────────────
 export const USD = 84;
 
+// ── Pricing fallback date (last manual update of pricing-data.json) ────
+// Update this string whenever pricing-data.json is edited.
+export const PRICING_FALLBACK_DATE = '2026-04-14';
+
+// ── Execution preference options (intake form) ─────────────────────────
+// Third option ("Autonomous agent") is shown only for relevant user types.
+export const EXEC_OPTIONS: Array<{ icon: string; label: string; desc: string; restrictTo?: string[] }> = [
+  { icon: '⚡', label: 'One-time task',        desc: 'I need this done once, not repeatedly' },
+  { icon: '🔄', label: 'Repeatable workflow',  desc: 'I want this to run on a schedule or trigger' },
+  { icon: '🤖', label: 'Autonomous agent',     desc: 'I want AI to handle this end-to-end without me',
+    restrictTo: ['Working Professional', 'CXO / Founder', 'Builder / Tinkerer'] },
+];
+
 // ── Platform data ─────────────────────────────────────────────────────
 export const PLATDATA: Record<string, {
   free: string; paid: string; paidINR: string;

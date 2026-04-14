@@ -1,0 +1,14 @@
+{
+  "updatedAt": "2026-04-14",
+  "exchangeRate": 84,
+  "models": {
+    "Claude Opus 4.6":       { "in": 5.00,  "out": 25.00, "cliff": null,   "note": "Flat pricing — no long-context premium" },
+    "Claude Sonnet 4.6":     { "in": 3.00,  "out": 15.00, "cliff": null,   "note": "Flat pricing — no long-context premium" },
+    "GPT-5.4":               { "in": 2.50,  "out": 15.00, "cliff": 272000, "note": "2× pricing above 272K tokens" },
+    "GPT-5.4 Mini":          { "in": 0.75,  "out": 4.50,  "cliff": null,   "note": "Budget mid-tier" },
+    "GPT-5.4 Nano":          { "in": 0.20,  "out": 1.25,  "cliff": null,   "note": "Ultra-budget" },
+    "Gemini 3.1 Pro":        { "in": 2.00,  "out": 12.00, "cliff": 200000, "note": "2× pricing above 200K tokens" },
+    "Gemini 2.5 Flash":      { "in": 0.15,  "out": 0.60,  "cliff": null,   "note": "Fast and cost-effective" },
+    "Gemini 3.1 Flash-Lite": { "in": 0.25,  "out": 1.50,  "cliff": null,   "note": "Ultra-budget 2026 model" }
+  }
+}

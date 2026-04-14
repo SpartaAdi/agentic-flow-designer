@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useBlueprintStore } from '../lib/state';
 import { CLARIFY } from '../lib/prompts';
 import { fetchQuestions } from '../lib/api';
+import { EXEC_OPTIONS } from '../lib/constants';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import Loading from '../components/Loading';
@@ -196,18 +197,22 @@ export default function IntakePage() {
           <div style={{ marginBottom: 24 }}>
             <span className="lbl">4. What kind of solution are you looking for? *</span>
             <div style={{ display: 'grid', gap: 7 }}>
-              {[
-                ['⚡','One-time task','I need this done once, not repeatedly'],
-                ['🔄','Repeatable workflow','I want this to run on a schedule or trigger'],
-              ].map(([ic,lb,desc]) =>
-                <div key={lb} className={`opt${intake.execPref === lb ? ' sel' : ''}`} onClick={() => set('execPref', lb)} style={{ flexDirection: 'column', alignItems: 'flex-start', gap: 2 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <span style={{ fontSize: 16 }}>{ic}</span>
-                    <span style={{ fontWeight: 500 }}>{lb}</span>
+              {EXEC_OPTIONS
+                .filter(opt => !opt.restrictTo || opt.restrictTo.includes(intake.userType))
+                .map(({ icon, label, desc }) => (
+                  <div
+                    key={label}
+                    className={`opt${intake.execPref === label ? ' sel' : ''}`}
+                    onClick={() => set('execPref', label)}
+                    style={{ flexDirection: 'column', alignItems: 'flex-start', gap: 2 }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <span style={{ fontSize: 16 }}>{icon}</span>
+                      <span style={{ fontWeight: 500 }}>{label}</span>
+                    </div>
+                    <span style={{ fontSize: 12, color: 'var(--txt2)', paddingLeft: 24 }}>{desc}</span>
                   </div>
-                  <span style={{ fontSize: 12, color: 'var(--txt2)', paddingLeft: 24 }}>{desc}</span>
-                </div>
-              )}
+                ))}
             </div>
           </div>
 

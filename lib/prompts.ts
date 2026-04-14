@@ -80,6 +80,15 @@ Monthly repeatable  -> LLM Skill/Prompt Template
 Weekly/daily        -> Scheduled Automation
 5+ tasks, multi-system, autonomous -> Full Autonomous Agent (production=robust)
 
+AUTONOMOUS AGENT OVERRIDE (execPref = "Autonomous agent"):
+When the user selects "Autonomous agent" as their execution preference, apply ALL of the following rules — no exceptions:
+1. executionApproach MUST be "Full Autonomous Agent". Do not suggest simpler approaches.
+2. platformRecommendation MUST be n8n (self-hosted), Make.com, or Relevance AI. NEVER "None (Direct LLM)".
+3. Each task description must describe what the AGENT does autonomously, not what the user does manually. Use phrasing like "Agent monitors...", "Agent fetches...", "Agent sends..." rather than "You open..." or "Manually copy...".
+4. detailedSteps must describe: trigger configuration, tool/credential connection setup, agent node wiring, and how the final output is delivered — NOT a manual how-to.
+5. In the detailedSteps promptTemplate fields, write the system prompt or agent instruction that drives that node — not a user-facing prompt.
+6. ROI: worthIt should reflect whether automation ROI justifies agent complexity. If the use case is <3 tasks and runs infrequently, flag this honestly.
+
 PLATFORM SELECTION (budget-first — this order matters):
 Non-technical + no budget -> Make.com or Relevance AI (NEVER recommend n8n Cloud to non-technical users)
 Technical user            -> n8n self-hosted (free, unlimited)
@@ -99,6 +108,9 @@ TOOL GAP ANALYSIS (mandatory):
 
 ROI HONESTY RULE: Compare this full agentic flow against: (a) a Claude Skill/Project, (b) a Gemini Gem, (c) a Custom GPT, (d) a simple scheduler. If any simpler alternative achieves >70% of the value at <30% of the cost, set worthIt=false and explain clearly.
 
+UX SUGGESTION RULE:
+Set isUxSuggestion=true on AT MOST 1-2 tasks/steps where a well-known UX pattern (progressive disclosure, skeleton loading, optimistic UI, etc.) would meaningfully improve the user experience. Leave false on all other tasks/steps. Do not fabricate suggestions.
+
 CONFIDENCE SCORING:
 confidenceScore 8-10: Use case is clear, tools are well-defined, requirements are unambiguous.
 confidenceScore 5-7: Some assumptions were required. State them in confidenceRationale.
@@ -107,4 +119,4 @@ confidenceScore 1-4: Use case is vague or contradictory. User should clarify bef
 TIME SAVINGS: estimatedTimeSaved should be a realistic human-readable string like "3 hours/week" or "45 minutes per report". Base it on the frequency and manual effort described.
 
 Return ONLY the final corrected JSON after your silent 2-pass review:
-{"title":"max 8 words","executionApproach":"Direct LLM Usage|LLM Skill / Prompt Template|Scheduled Automation|Full Autonomous Agent","executionRationale":"one sentence","tasks":[{"number":1,"name":"","type":"Trigger|Data Fetch|Research|Analysis|Content Generation|Decision|Data Transform|Output","llm":"model or None","llmReason":"one phrase why — must cite which Golden Rule","platform":"","description":""}],"visualFlow":"[Task|LLM|Tool]->([Task|LLM|Tool]","llmDistribution":[{"llm":"Claude Sonnet 4.6","taskCount":1,"taskNames":[""]}],"platformRecommendation":"platform name","platformRationale":"why (budget reasoning)","llmRationale":"overall LLM strategy","freemiumVerdict":"Freemium sufficient|Freemium to start upgrade likely|Paid required","primaryLLM":"model name","billingNote":"plain English — explain two separate bills","cliffWarning":null,"toolAnalysis":{"toolsRequired":[],"toolsUserHas":[],"toolsBlocked":[],"toolsGap":[{"tool":"","reason":"","workaround":""}],"toolsPrivacyConflict":[{"tool":"","issue":"","workaround":""}]},"roiAssessment":{"worthIt":true,"summary":"","alternatives":[{"name":"","description":"","cost":"","bestFor":""}]},"detailedSteps":[{"taskNumber":1,"taskName":"","description":"","platform":"","llm":"","promptTemplate":"specific non-empty prompt for this exact task","input":"","output":"","connection":"","setupTime":""}],"confidenceScore":8,"confidenceRationale":"one sentence about confidence level and any assumptions made","estimatedTimeSaved":"X hours/week","platformSources":{"pricing":"https://...","docs":"https://..."},"llmSources":{"pricing":"https://...","capabilities":"https://..."}}`;
+{"title":"max 8 words","executionApproach":"Direct LLM Usage|LLM Skill / Prompt Template|Scheduled Automation|Full Autonomous Agent","executionRationale":"one sentence","tasks":[{"number":1,"name":"","type":"Trigger|Data Fetch|Research|Analysis|Content Generation|Decision|Data Transform|Output","llm":"model or None","llmReason":"one phrase why — must cite which Golden Rule","platform":"","description":"","isUxSuggestion":false}],"visualFlow":"[Task|LLM|Tool]->([Task|LLM|Tool]","llmDistribution":[{"llm":"Claude Sonnet 4.6","taskCount":1,"taskNames":[""]}],"platformRecommendation":"platform name","platformRationale":"why (budget reasoning)","llmRationale":"overall LLM strategy","freemiumVerdict":"Freemium sufficient|Freemium to start upgrade likely|Paid required","primaryLLM":"model name","billingNote":"plain English — explain two separate bills","cliffWarning":null,"toolAnalysis":{"toolsRequired":[],"toolsUserHas":[],"toolsBlocked":[],"toolsGap":[{"tool":"","reason":"","workaround":""}],"toolsPrivacyConflict":[{"tool":"","issue":"","workaround":""}]},"roiAssessment":{"worthIt":true,"summary":"","alternatives":[{"name":"","description":"","cost":"","bestFor":""}]},"detailedSteps":[{"taskNumber":1,"taskName":"","description":"","platform":"","llm":"","promptTemplate":"specific non-empty prompt for this exact task","input":"","output":"","connection":"","setupTime":"","isUxSuggestion":false}],"confidenceScore":8,"confidenceRationale":"one sentence about confidence level and any assumptions made","estimatedTimeSaved":"X hours/week","platformSources":{"pricing":"https://...","docs":"https://..."},"llmSources":{"pricing":"https://...","capabilities":"https://..."}}`;
